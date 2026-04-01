@@ -1,0 +1,43 @@
+import type { ItemState } from "./types";
+import { VALID_TRANSITIONS as TRANSITIONS } from "./types";
+
+/** Validate a session token format (CUID2: 24 lowercase alphanumeric chars). */
+export function isValidToken(token: unknown): token is string {
+  return typeof token === "string" && /^[a-z0-9]{24,32}$/.test(token);
+}
+
+/** Validate an item name: non-empty string, max 200 chars. */
+export function isValidItemName(name: unknown): name is string {
+  return typeof name === "string" && name.trim().length > 0 && name.length <= 200;
+}
+
+/** Validate item quantity: positive integer 1–999. */
+export function isValidQuantity(qty: unknown): qty is number {
+  return typeof qty === "number" && Number.isInteger(qty) && qty >= 1 && qty <= 999;
+}
+
+/** Validate optional price: null or non-negative number with at most 2 decimal places. */
+export function isValidPrice(price: unknown): price is number | null {
+  if (price === null || price === undefined) return true;
+  if (typeof price !== "number") return false;
+  if (!isFinite(price) || price < 0) return false;
+  // Max 2 decimal places, max $99,999.99
+  return price <= 99999.99 && Math.round(price * 100) === price * 100;
+}
+
+/** Validate a contributor label: optional string, max 50 chars. */
+export function isValidContributorLabel(label: unknown): label is string | null {
+  if (label === null || label === undefined) return true;
+  return typeof label === "string" && label.trim().length > 0 && label.length <= 50;
+}
+
+/** Validate that a state transition is permitted. */
+export function isValidTransition(from: ItemState, to: ItemState): boolean {
+  return (TRANSITIONS[from] as ItemState[]).includes(to);
+}
+
+/** Session title: optional string, max 100 chars. */
+export function isValidSessionTitle(title: unknown): title is string {
+  if (title === null || title === undefined || title === "") return true;
+  return typeof title === "string" && title.length <= 100;
+}
