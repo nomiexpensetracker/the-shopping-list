@@ -4,13 +4,14 @@
   --background: #f0f4f0;
   --foreground: #111827;
   --brand: #1a6641;
-  --brand-dark: #134d31;
+  --brand-dark: #171717;
   --brand-light: #e8f5e9;
   --card: #ffffff;
   --muted: #6b7280;
   --border: #e5e7eb;
   --collected-bg: #d1fae5;
   --collected-text: #065f46;
+  --quantity-bg: #f3ebf7;
 }
 
 @theme inline {

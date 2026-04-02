@@ -9,6 +9,7 @@ export interface Item {
   quantity: number;
   state: ItemState;
   price: number | null;
+  description: string | null;
   contributor_label: string | null;
   edit_at: string; // ISO timestamp
 }

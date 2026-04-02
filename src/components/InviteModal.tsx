@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import QRCode from "@/components/QRCode";
+import Image from "next/image";
 
 interface Props {
   sessionId: string;
@@ -40,15 +41,15 @@ export default function InviteModal({ sessionId, onClose }: Props) {
           className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center"
           style={{ color: "var(--muted)" }}
         >
-          &#10005;
+          <Image src="/icons/close.svg" alt="Close" width={16} height={16} />
         </button>
 
         <div className="text-center">
-          <h2 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
             Invite Collaborators
           </h2>
-          <p className="text-sm" style={{ color: "var(--muted)" }}>
-            Share this unique session link to shop together. Changes sync every 30 seconds.
+          <p className="text-base" style={{ color: "var(--muted)" }}>
+            Share this unique session link to shop together in real-time. Changes sync instantly across all devices.
           </p>
         </div>
 
@@ -66,20 +67,13 @@ export default function InviteModal({ sessionId, onClose }: Props) {
         >
           {copied ? "Copied!" : (
             <>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
+              <Image src="/icons/clipboard.svg" alt="Copy link" width={24} height={24} />
               Copy Link
             </>
           )}
         </button>
 
-        <p className="text-xs flex items-center gap-1" style={{ color: "var(--muted)" }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
+        <p className="text-xs flex items-center italic gap-1" style={{ color: "var(--muted)" }}>
           Link expires after 24 hours of inactivity
         </p>
       </div>

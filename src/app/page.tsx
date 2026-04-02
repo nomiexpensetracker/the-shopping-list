@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
+import MobileGate from "@/components/MobileGate";
+import Image from "next/image";
 
 export default function HomePage() {
   const router = useRouter();
@@ -33,6 +35,7 @@ export default function HomePage() {
   }
 
   return (
+    <MobileGate>
     <main
       className="relative min-h-dvh flex flex-col"
       style={{ background: "var(--background)" }}
@@ -52,20 +55,20 @@ export default function HomePage() {
 
       <div className="flex-1 flex flex-col justify-center px-6 pt-20 pb-10">
         <h1
-          className="text-5xl font-black leading-tight tracking-tight mb-2"
+          className="text-5xl font-black leading-tight tracking-tight mb-2 text-center"
           style={{ color: "var(--foreground)" }}
         >
           The Shopping
         </h1>
         <h1
-          className="text-5xl font-black leading-tight tracking-tight mb-6"
+          className="text-5xl font-black leading-tight tracking-tight mb-6 text-center"
           style={{ color: "var(--brand)" }}
         >
           List.
         </h1>
 
         <p
-          className="text-base leading-relaxed mb-10"
+          className="text-lg font-normal leading-relaxed mb-10 text-center"
           style={{ color: "var(--muted)" }}
         >
           High-speed utility meets editorial elegance. Create and shop together
@@ -78,8 +81,8 @@ export default function HomePage() {
             placeholder="Shopping Session Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            maxLength={100}
-            className="w-full px-4 py-4 rounded-xl text-base focus:outline-none transition"
+            maxLength={26}
+            className="w-full px-4 py-4 rounded-xl text-base focus:outline-none transition text-center"
             style={{
               background: "var(--card)",
               border: "1px solid var(--border)",
@@ -96,14 +99,15 @@ export default function HomePage() {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-60"
+            disabled={!title || loading}
+            className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 transition active:scale-95 disabled:variable(--brand-dark) disabled:cursor-not-allowed disabled:opacity-50"
             style={{ background: "var(--brand)" }}
           >
-            {loading ? "Creating\u2026" : "Shop List Now \u2192"}
+            {loading ? "Creating\u2026" : <span className="flex gap-2">Shop List Now <Image src="/icons/arrow.svg" alt="Arrow" width={16} height={16} /></span>}
           </button>
         </form>
       </div>
     </main>
+    </MobileGate>
   );
 }
