@@ -1,5 +1,5 @@
-import type { ItemState } from "./types";
-import { VALID_TRANSITIONS as TRANSITIONS } from "./types";
+import type { ItemState } from "@/types/dao";
+import { VALID_TRANSITIONS as TRANSITIONS } from "@/types/dao";
 
 /** Validate a session token format (CUID2: 24 lowercase alphanumeric chars). */
 export function isValidToken(token: unknown): token is string {

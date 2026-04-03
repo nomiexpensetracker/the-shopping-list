@@ -7,3 +7,8 @@ export function getRandomHexColor(): string {
   }
   return color;
 }
+
+// function to format number to rupiah currency format
+export function formatRupiah(amount: number): string {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+}

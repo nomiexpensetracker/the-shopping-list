@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import type { Item } from "@/lib/types";
+import type { Item } from "@/types/dao";
 import Image from "next/image";
+import QuantityEditor from "./quantity-editor";
 
 interface Props {
   item: Item | null;  // null = adding new item
@@ -96,37 +97,13 @@ export default function EditItemModal({ item, onDone, onClose }: Props) {
           />
         </div>
 
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-widest mb-3 block" style={{ color: "var(--muted)" }}>
-            Quantity
-          </label>
-          <div className="flex items-center gap-4 p-2" style={{ background: "var(--quantity-bg)" }}>
-            <button
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-              aria-label="Decrease quantity"
-              className="w-14 h-14 rounded-2xl text-2xl font-bold flex items-center justify-center"
-              style={{ background: "var(--brand-light)", color: "var(--brand)" }}
-            >
-              <Image src="/icons/remove-minus.svg" alt="Decrease quantity" width={24} height={24} />
-            </button>
-            <span className="flex-1 text-center text-2xl font-bold" style={{ color: "var(--foreground)" }}>
-              {qty}
-            </span>
-            <button
-              onClick={() => setQty((q) => Math.min(999, q + 1))}
-              aria-label="Increase quantity"
-              className="w-14 h-14 rounded-2xl text-2xl font-bold flex items-center justify-center"
-              style={{ background: "var(--brand)", color: "#fff" }}
-            >
-              <Image src="/icons/add-plus.svg" alt="Increase quantity" width={24} height={24} />
-            </button>
-          </div>
-        </div>
+        {/* Quantity */}
+        <QuantityEditor qty={qty} setQty={setQty} />
 
         <div className="flex gap-2">
           <button
             onClick={onClose}
-            className="w-12 h-12 rounded-xl font-semibold text-base transition flex items-center justify-center"
+            className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center"
             style={{ background: "var(--background)", color: "var(--foreground)" }}
           >
             <Image src="/icons/close.svg" alt="Cancel" width={24} height={24} />
@@ -134,7 +111,7 @@ export default function EditItemModal({ item, onDone, onClose }: Props) {
           <button
             onClick={handleDone}
             disabled={!name.trim()}
-            className="w-full py-4 rounded-xl text-white font-semibold text-base transition disabled:opacity-50"
+            className="w-full h-14 flex items-center justify-center rounded-xl text-white font-semibold text-lg transition disabled:opacity-50"
             style={{ background: "var(--brand)" }}
           >
             {item ? "Save Changes" : "Add to List"}

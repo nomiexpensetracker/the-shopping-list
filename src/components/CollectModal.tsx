@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Item } from "@/lib/types";
+
+import type { Item } from "@/types/dao";
+
+import QuantityEditor from "./quantity-editor";
 
 interface Props {
   item: Item;
@@ -18,7 +21,7 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
     inputRef.current?.focus();
   }, []);
 
-  function handleDone() {
+  const handleDone = () => {
     const price = priceStr === "" ? null : parseFloat(priceStr);
     if (priceStr !== "" && (isNaN(price!) || price! < 0)) return;
     onDone(qty, price ?? null);
@@ -58,38 +61,7 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
         </div>
 
         {/* Quantity */}
-        <div>
-          <label
-            className="text-xs font-semibold uppercase tracking-widest mb-3 block"
-            style={{ color: "var(--muted)" }}
-          >
-            Collected Qty
-          </label>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-              aria-label="Decrease quantity"
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold transition"
-              style={{ background: "var(--brand-light)", color: "var(--brand)" }}
-            >
-              &minus;
-            </button>
-            <span
-              className="flex-1 text-center text-3xl font-bold"
-              style={{ color: "var(--foreground)" }}
-            >
-              {qty}
-            </span>
-            <button
-              onClick={() => setQty((q) => Math.min(999, q + 1))}
-              aria-label="Increase quantity"
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold transition"
-              style={{ background: "var(--brand)", color: "#fff" }}
-            >
-              +
-            </button>
-          </div>
-        </div>
+        <QuantityEditor qty={qty} setQty={setQty} />
 
         {/* Price */}
         <div>
@@ -98,7 +70,7 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
             className="text-xs font-semibold uppercase tracking-widest mb-3 block"
             style={{ color: "var(--muted)" }}
           >
-            Item Price (Optional)
+            Item Price (Per Unit - Optional) 
           </label>
           <div
             className="flex items-center rounded-xl px-4 h-14"
@@ -108,7 +80,7 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
             }}
           >
             <span className="text-lg font-semibold mr-2" style={{ color: "var(--muted)" }}>
-              $
+              Rp
             </span>
             <input
               ref={inputRef}
@@ -132,7 +104,7 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
           className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 transition"
           style={{ background: "var(--brand)" }}
         >
-          Done ✓
+          Done
         </button>
       </div>
     </div>

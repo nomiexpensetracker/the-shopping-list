@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   title: "The Shopping List — Collaborative Group Shopping",
   description:
     "Create or join a group shopping session in seconds. Collaborate on a shared list, track your budget, and finish with a digital receipt.",
+  icons: {
+    icon: "/favicon.gif",
+  },
   openGraph: {
     title: "The Shopping List — Collaborative Group Shopping",
     description:

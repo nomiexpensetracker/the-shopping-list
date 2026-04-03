@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import MobileGate from "@/components/MobileGate";
-import Image from "next/image";
+import ThemeToggle from "@/components/ThemeToggle";
+import { CommonResponse, PostSessionResponse } from "@/types/dto";
 
 export default function HomePage() {
   const router = useRouter();
@@ -35,6 +37,7 @@ export default function HomePage() {
         name: name.trim(),
         title: title.trim(),
       });
+
       const res = await fetch("/api/sessions", {
         body: payload,
         method: "POST",
@@ -43,8 +46,20 @@ export default function HomePage() {
 
       if (!res.ok) throw new Error("Failed to create session");
 
-      const data = await res.json() as { id: string };
-      router.push("/session/" + data.id);
+      const data = await res.json() as CommonResponse<PostSessionResponse>;
+      if (data.success) {
+        const sessionData = data.data;
+        // store data in localStorage for later use in session page
+        localStorage.setItem(`participant_${sessionData.id}_name`, name.trim());
+        localStorage.setItem(`participant_${sessionData.id}_id`, sessionData.participant.id);
+        localStorage.setItem(`participant_${sessionData.id}_color`, sessionData.participant.color);
+
+        // navigate to session page
+        router.push("/session/" + sessionData.id);
+      } else {
+        setError("Oops something went wrong. Please try again.");
+        setLoading(false);
+      }
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -85,40 +100,51 @@ export default function HomePage() {
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            value={title}
-            aria-label="Shopping title (optional)"
-            placeholder="Shopping Title"
-            onChange={(e) => setTitle(e.target.value)}
-            maxLength={26}
-            className="w-full px-4 py-4 rounded-xl text-base focus:outline-none transition text-center"
-            style={{
-              background: "var(--card)",
-              border: "1px solid var(--border)",
-              color: "var(--foreground)",
-            }}
-          />
-          <input
-            type="text"
-            value={name}
-            aria-label="Your name (optional)"
-            placeholder="Your Name"
-            onChange={(e) => setName(e.target.value)}
-            maxLength={26}
-            className="w-full px-4 py-4 rounded-xl text-base focus:outline-none transition text-center"
-            style={{
-              background: "var(--card)",
-              border: "1px solid var(--border)",
-              color: "var(--foreground)",
-            }}
-          />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold uppercase tracking-widest mb-3 block" style={{ color: "var(--muted)" }}>
+              Shopping Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="title"
+              type="text"
+              value={title}
+              aria-label="Shopping title (required)"
+              placeholder="Weekly Groceries, Party Supplies"
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={26}
+              className="w-full px-4 py-4 rounded-xl text-base focus:outline-none transition text-center"
+              style={{
+                background: "var(--card)",
+                border: "1px solid var(--border)",
+                color: "var(--foreground)",
+              }}
+            />
 
-          {error && (
-            <p role="alert" className="text-red-500 text-sm">
-              {error}
-            </p>
-          )}
+            <label className="text-xs font-semibold uppercase tracking-widest mb-3 block" style={{ color: "var(--muted)" }}>
+              Nickname <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              aria-label="Nickname (optional)"
+              placeholder="John Doe, Mom, Dad"
+              onChange={(e) => setName(e.target.value)}
+              maxLength={26}
+              className="w-full px-4 py-4 rounded-xl text-base focus:outline-none transition text-center"
+              style={{
+                background: "var(--card)",
+                border: "1px solid var(--border)",
+                color: "var(--foreground)",
+              }}
+            />
+
+            {error && (
+              <p role="alert" className="text-red-500 text-sm">
+                {error}
+              </p>
+            )}
+          </div>
 
           <button
             type="submit"
@@ -126,7 +152,7 @@ export default function HomePage() {
             className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 transition active:scale-95 disabled:variable(--brand-dark) disabled:cursor-not-allowed disabled:opacity-50"
             style={{ background: "var(--brand)" }}
           >
-            {loading ? "Creating\u2026" : <span className="flex gap-2">Shop List Now <Image src="/icons/arrow.svg" alt="Arrow" width={16} height={16} /></span>}
+            {loading ? "Creating your session\u2026" : <span className="flex gap-2">Shop List Now <Image src="/icons/arrow.svg" alt="Arrow" width={16} height={16} /></span>}
           </button>
         </form>
       </div>

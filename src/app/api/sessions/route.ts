@@ -58,18 +58,25 @@ export async function POST(req: Request) {
     return NextResponse.json({
       data: {
         id: sessionId,
-        participant_id: participantId,
-        participant_name: name,
-        participant_color: participantColor
+        title: title,
+        participant: {
+          id: participantId,
+          name: name,
+          color: participantColor,
+        }
       },
-      status: 201
+      status: 201,
+      success: true,
+      message: "Session created successfully",
     });
   } catch (err) {
     console.error("Transaction failed:", err);
 
     return NextResponse.json({
       data: null,
-      error: "Failed to create session"
+      error: "Failed to create session",
+      status: 500,
+      success: false,
     }, { status: 500 });
   }
 };

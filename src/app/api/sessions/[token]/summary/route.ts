@@ -43,7 +43,7 @@ export async function GET(
         SELECT COALESCE(SUM(i.price * i.quantity), 0)
         FROM items i
         WHERE i.session_id = s.id
-          AND i.state = 'collected' AND i.collected_by = sp.id
+          AND i.state = 'collected'
       ) AS collected_items_total_price,
 
       -- participants count
@@ -53,12 +53,16 @@ export async function GET(
         WHERE sp.session_id = s.id
       ) AS participants_count
     FROM sessions s
-    WHERE s.token = ${token}
+    WHERE s.id = ${token}
   `;
 
   if (summary.length === 0) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  return NextResponse.json(summary[0]);
+  return NextResponse.json({
+    data: summary[0],
+    status: 200,
+    success: true,
+  });
 }

@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import useSWR from "swr";
-import type { Item, Session } from "@/lib/types";
+import type { Item, Session } from "@/types/dao";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 

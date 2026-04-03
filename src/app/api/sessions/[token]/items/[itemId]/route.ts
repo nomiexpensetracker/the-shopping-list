@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { sql } from "@/lib/db";
-import type { ItemState } from "@/lib/types";
+import type { ItemState } from "@/types/dao";
 import {
   isValidToken,
   isValidPrice,

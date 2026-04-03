@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Item, Session } from "@/lib/types";
+import type { Item, Session } from "@/types/dao";
 
 interface Props {
   session: Session;

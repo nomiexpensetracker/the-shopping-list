@@ -1,6 +1,7 @@
 "use client";
 
-import type { Item } from "@/lib/types";
+import { formatRupiah } from "@/lib/utils";
+import type { Item } from "@/types/dao";
 
 interface Props {
   item: Item;
@@ -55,7 +56,7 @@ export default function ItemCard({ item, onCollect, onUncollect, onDelete, onEdi
         </p>
         {isCollected && item.price != null && (
           <p className="text-xs" style={{ color: "var(--brand)" }}>
-            ${item.price}
+            {formatRupiah(item.price)}
           </p>
         )}
         {isCollected && item.collected_by && (

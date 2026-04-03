@@ -29,7 +29,11 @@ export async function GET(_req: Request, { params }: RouteContext) {
     ORDER BY created_at ASC;
   `;
 
-  return NextResponse.json(items);
+  return NextResponse.json({
+    data: items,
+    status: 200,
+    success: true,
+  });
 }
 
 /** POST /api/sessions/[token]/items — add a new item */
@@ -52,7 +56,7 @@ export async function POST(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { name, quantity = 1, description = null } = body;
+  const { name, quantity = 1, created_by, description = null } = body;
 
   if (!isValidItemName(name)) {
     return NextResponse.json({ error: "Invalid item name" }, { status: 400 });
@@ -64,13 +68,17 @@ export async function POST(req: Request, { params }: RouteContext) {
   const id = generateItemId();
 
   const [item] = await sql`
-    INSERT INTO items (id, session_id, name, quantity, description)
-    VALUES (${id}, ${token}, ${(name as string).trim()}, ${quantity as number}, ${description as string | null})
+    INSERT INTO items (id, session_id, name, quantity, created_by, description)
+    VALUES (${id}, ${token}, ${(name as string).trim()}, ${quantity as number}, ${created_by as string}, ${description as string | null})
     RETURNING id, session_id, name, quantity, state, price, description, created_at, created_by, updated_at, updated_by, collected_at, collected_by
   `;
 
   // bump session last_active
   await sql`UPDATE sessions SET last_active = NOW() WHERE id = ${token}`;
 
-  return NextResponse.json(item, { status: 201 });
+  return NextResponse.json({
+    data: item,
+    status: 201,
+    success: true,
+  });
 }
