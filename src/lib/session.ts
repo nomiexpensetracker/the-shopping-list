@@ -9,3 +9,8 @@ export function generateSessionId(): string {
 export function generateItemId(): string {
   return createId();
 }
+
+/** Generate a new session participant id. */
+export function generateSessionParticipantId(): string {
+  return createId();
+}

@@ -21,8 +21,8 @@ export function isValidPrice(price: unknown): price is number | null {
   if (price === null || price === undefined) return true;
   if (typeof price !== "number") return false;
   if (!isFinite(price) || price < 0) return false;
-  // Max 2 decimal places, max $99,999.99
-  return price <= 99999.99 && Math.round(price * 100) === price * 100;
+  // Max 2 decimal places, max $9,999,999.99
+  return price <= 9999999 && Math.round(price * 100) === price * 100;
 }
 
 /** Validate a contributor label: optional string, max 50 chars. */
@@ -36,8 +36,32 @@ export function isValidTransition(from: ItemState, to: ItemState): boolean {
   return (TRANSITIONS[from] as ItemState[]).includes(to);
 }
 
-/** Session title: optional string, max 100 chars. */
+/** Session title string, max 26 chars. */
 export function isValidSessionTitle(title: unknown): title is string {
   if (title === null || title === undefined || title === "") return true;
-  return typeof title === "string" && title.length <= 100;
+  return typeof title === "string" && title.length <= 26;
+}
+
+/** Participant name string, max 26 chars. */
+export function isValidParticipantName(name: unknown): name is string {
+  if (name === null || name === undefined || name === "") return true;
+  return typeof name === "string" && name.length <= 26;
+}
+
+/** Validate a collected_by referenced to session participants(id). */
+export function isValidCollectedBy(collected_by: unknown): collected_by is string | null {
+  if (collected_by === null || collected_by === undefined) return true;
+  return typeof collected_by === "string" && /^[a-z0-9]{24,32}$/.test(collected_by);
+}
+
+/** Validate a description: optional string, max 500 chars. */
+export function isValidDescription(description: unknown): description is string | null {
+  if (description === null || description === undefined) return true;
+  return typeof description === "string" && description.length <= 500;
+}
+
+/** Validate an activity action based on valid action ('created', 'updated', 'deleted', 'restored', 'collected'). */
+export function isValidActivityAction(action: unknown): action is string {
+  const validActions = ["created", "updated", "deleted", "restored", "collected"];
+  return typeof action === "string" && validActions.includes(action);
 }

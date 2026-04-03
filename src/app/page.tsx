@@ -8,6 +8,7 @@ import Image from "next/image";
 
 export default function HomePage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,10 +19,26 @@ export default function HomePage() {
     setError("");
 
     try {
+      // Trim inputs and validate on client-side before sending to server
+      if (!title.trim()) {
+        setError("Session title is required");
+        setLoading(false);
+        return;
+      }
+      if (!name.trim()) {
+        setError("Name is required");
+        setLoading(false);
+        return;
+      }
+
+      const payload = JSON.stringify({
+        name: name.trim(),
+        title: title.trim(),
+      });
       const res = await fetch("/api/sessions", {
+        body: payload,
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.trim() }),
       });
 
       if (!res.ok) throw new Error("Failed to create session");
@@ -40,14 +57,6 @@ export default function HomePage() {
       className="relative min-h-dvh flex flex-col"
       style={{ background: "var(--background)" }}
     >
-      {/* Gradient blob top-right */}
-      <div
-        className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-30 pointer-events-none"
-        style={{
-          background: "radial-gradient(circle, #a7f3d0 0%, transparent 70%)",
-        }}
-        aria-hidden="true"
-      />
 
       <div className="absolute top-4 right-4">
         <ThemeToggle />
@@ -78,8 +87,9 @@ export default function HomePage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="text"
-            placeholder="Shopping Session Title"
             value={title}
+            aria-label="Shopping title (optional)"
+            placeholder="Shopping Title"
             onChange={(e) => setTitle(e.target.value)}
             maxLength={26}
             className="w-full px-4 py-4 rounded-xl text-base focus:outline-none transition text-center"
@@ -88,7 +98,20 @@ export default function HomePage() {
               border: "1px solid var(--border)",
               color: "var(--foreground)",
             }}
-            aria-label="Shopping session title (optional)"
+          />
+          <input
+            type="text"
+            value={name}
+            aria-label="Your name (optional)"
+            placeholder="Your Name"
+            onChange={(e) => setName(e.target.value)}
+            maxLength={26}
+            className="w-full px-4 py-4 rounded-xl text-base focus:outline-none transition text-center"
+            style={{
+              background: "var(--card)",
+              border: "1px solid var(--border)",
+              color: "var(--foreground)",
+            }}
           />
 
           {error && (
@@ -99,7 +122,7 @@ export default function HomePage() {
 
           <button
             type="submit"
-            disabled={!title || loading}
+            disabled={loading}
             className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 transition active:scale-95 disabled:variable(--brand-dark) disabled:cursor-not-allowed disabled:opacity-50"
             style={{ background: "var(--brand)" }}
           >

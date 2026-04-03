@@ -2,15 +2,15 @@ import { neon } from "@neondatabase/serverless";
 
 // Lazily initialise the client so the module can be imported at build time
 // without crashing when DATABASE_URL is absent.
-let _sql: ReturnType<typeof neon> | null = null;
+let _client: ReturnType<typeof neon> | null = null;
 
-function getSql() {
-  if (!_sql) {
+export function getClient() {
+  if (!_client) {
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error("DATABASE_URL environment variable is not set");
-    _sql = neon(url);
+    _client = neon(url);
   }
-  return _sql;
+  return _client;
 }
 
 // Tagged-template wrapper that always resolves to Record<string,unknown>[]
@@ -19,7 +19,7 @@ export async function sql(
   strings: TemplateStringsArray,
   ...values: unknown[]
 ): Promise<Record<string, unknown>[]> {
-  const client = getSql();
+  const client = getClient();
   const result = await client(strings, ...values);
   // neon returns rows[] or FullQueryResults; rows are always the array entries
   if (Array.isArray(result)) {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { generateItemId } from "@/lib/session";
-import { isValidToken, isValidItemName, isValidQuantity, isValidContributorLabel } from "@/lib/validate";
+import { isValidToken, isValidItemName, isValidQuantity } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,7 @@ interface RouteContext {
   params: Promise<{ token: string }>;
 }
 
-/** GET /api/sessions/[token]/items — list all non-deleted items */
+/** GET /api/sessions/[token]/items — list all items */
 export async function GET(_req: Request, { params }: RouteContext) {
   const { token } = await params;
 
@@ -23,10 +23,10 @@ export async function GET(_req: Request, { params }: RouteContext) {
   }
 
   const items = await sql`
-    SELECT id, session_id, name, quantity, state, price, contributor_label, edit_at
+    SELECT id, session_id, name, quantity, description, state, price, created_at, created_by, updated_at, updated_by, collected_at, collected_by
     FROM items
-    WHERE session_id = ${token} AND state != 'deleted'
-    ORDER BY edit_at ASC
+    WHERE session_id = ${token}
+    ORDER BY created_at ASC;
   `;
 
   return NextResponse.json(items);
@@ -52,7 +52,7 @@ export async function POST(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { name, quantity = 1, contributor_label = null } = body;
+  const { name, quantity = 1, description = null } = body;
 
   if (!isValidItemName(name)) {
     return NextResponse.json({ error: "Invalid item name" }, { status: 400 });
@@ -60,16 +60,13 @@ export async function POST(req: Request, { params }: RouteContext) {
   if (!isValidQuantity(quantity)) {
     return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
   }
-  if (!isValidContributorLabel(contributor_label)) {
-    return NextResponse.json({ error: "Invalid contributor label" }, { status: 400 });
-  }
 
   const id = generateItemId();
 
   const [item] = await sql`
-    INSERT INTO items (id, session_id, name, quantity, contributor_label)
-    VALUES (${id}, ${token}, ${(name as string).trim()}, ${quantity as number}, ${contributor_label as string | null})
-    RETURNING id, session_id, name, quantity, state, price, contributor_label, edit_at
+    INSERT INTO items (id, session_id, name, quantity, description)
+    VALUES (${id}, ${token}, ${(name as string).trim()}, ${quantity as number}, ${description as string | null})
+    RETURNING id, session_id, name, quantity, state, price, description, created_at, created_by, updated_at, updated_by, collected_at, collected_by
   `;
 
   // bump session last_active

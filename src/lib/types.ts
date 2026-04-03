@@ -1,6 +1,7 @@
 /** Shared domain types used across client and server. */
 
-export type ItemState = "added" | "collected" | "deleted";
+export type ItemState = "active" | "collected" | "deleted" | "restored";
+export type ActivityType = "created" | "updated" | "deleted" | "restored" | "collected";
 
 export interface Item {
   id: string;
@@ -10,8 +11,11 @@ export interface Item {
   state: ItemState;
   price: number | null;
   description: string | null;
-  contributor_label: string | null;
-  edit_at: string; // ISO timestamp
+  deleted_at: string | null;
+  updated_at: string;
+  updated_by: string | null;
+  collected_at: string | null;
+  collected_by: string | null;
 }
 
 export interface Session {
@@ -23,7 +27,8 @@ export interface Session {
 
 /** Valid next states from a given current state. */
 export const VALID_TRANSITIONS: Record<ItemState, ItemState[]> = {
-  added: ["collected", "deleted"],
-  collected: ["added", "deleted"],
+  active: ["collected", "deleted", "restored"],
+  collected: ["active", "deleted", "restored"],
   deleted: [], // terminal
+  restored: ["active", "collected", "deleted"],
 };

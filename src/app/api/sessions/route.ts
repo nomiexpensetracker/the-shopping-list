@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
-import { generateSessionId } from "@/lib/session";
-import { isValidSessionTitle } from "@/lib/validate";
+
+import { getClient } from "@/lib/db";
+import { isValidParticipantName, isValidSessionTitle } from "@/lib/validate";
+import { generateSessionId, generateSessionParticipantId } from "@/lib/session";
+import { getRandomHexColor } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+// POST /api/sessions — create new shopping list session with transaction
 export async function POST(req: Request) {
   let body: unknown;
   try {
@@ -13,19 +16,60 @@ export async function POST(req: Request) {
     body = {};
   }
 
-  const rawTitle =
-    body && typeof body === "object" && "title" in body ? (body as Record<string, unknown>).title : "";
+  const sessionTitle =
+    body && typeof body === "object" && "title" in body
+      ? (body as Record<string, unknown>).title
+      : "";
 
-  if (!isValidSessionTitle(rawTitle)) {
+  const participantName =
+    body && typeof body === "object" && "name" in body
+      ? (body as Record<string, unknown>).name
+      : "";
+
+  if (!isValidSessionTitle(sessionTitle)) {
     return NextResponse.json({ error: "Invalid session title" }, { status: 400 });
   }
 
-  const title = typeof rawTitle === "string" ? rawTitle.trim() : "";
-  const id = generateSessionId();
+  if (!isValidParticipantName(participantName)) {
+    return NextResponse.json({ error: "Invalid participant name" }, { status: 400 });
+  }
 
-  await sql`
-    INSERT INTO sessions (id, title) VALUES (${id}, ${title})
-  `;
+  const title = typeof sessionTitle === "string" ? sessionTitle.trim() : "";
+  const name = typeof participantName === "string" ? participantName.trim() : "";
 
-  return NextResponse.json({ id, title }, { status: 201 });
-}
+  const sessionId = generateSessionId();
+  const participantId = generateSessionParticipantId();
+  const participantColor = getRandomHexColor();
+
+  const sql = getClient();
+
+  try {
+    await sql.transaction([
+      sql`
+        INSERT INTO sessions (id, title)
+        VALUES (${sessionId}, ${title})
+      `,
+      sql`
+        INSERT INTO session_participants (id, name, session_id, color)
+        VALUES (${participantId}, ${name}, ${sessionId}, ${participantColor})
+      `,
+    ]);
+
+    return NextResponse.json({
+      data: {
+        id: sessionId,
+        participant_id: participantId,
+        participant_name: name,
+        participant_color: participantColor
+      },
+      status: 201
+    });
+  } catch (err) {
+    console.error("Transaction failed:", err);
+
+    return NextResponse.json({
+      data: null,
+      error: "Failed to create session"
+    }, { status: 500 });
+  }
+};

@@ -5,7 +5,6 @@ import type { Item } from "@/lib/types";
 
 interface Props {
   item: Item;
-  contributorLabel: string;
   onDone: (qty: number, price: number | null) => void;
   onClose: () => void;
 }

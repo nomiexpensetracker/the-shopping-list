@@ -15,6 +15,23 @@ export const metadata: Metadata = {
   title: "The Shopping List — Collaborative Group Shopping",
   description:
     "Create or join a group shopping session in seconds. Collaborate on a shared list, track your budget, and finish with a digital receipt.",
+  openGraph: {
+    title: "The Shopping List — Collaborative Group Shopping",
+    description:
+      "Create or join a group shopping session in seconds. Collaborate on a shared list, track your budget, and finish with a digital receipt.",
+    url: "https://the-shopping-list-eight.vercel.app",
+    siteName: "The Shopping List",
+    images: [
+      {
+        url: "https://the-shopping-list-eight.vercel.app/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "The Shopping List App Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

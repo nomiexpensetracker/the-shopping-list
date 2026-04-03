@@ -58,9 +58,9 @@ export default function ItemCard({ item, onCollect, onUncollect, onDelete, onEdi
             ${item.price}
           </p>
         )}
-        {isCollected && item.contributor_label && (
+        {isCollected && item.collected_by && (
           <p className="text-xs" style={{ color: "var(--muted)" }}>
-            {item.contributor_label}
+            {item.collected_by}
           </p>
         )}
       </div>

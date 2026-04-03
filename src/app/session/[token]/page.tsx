@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState, useCallback } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import MobileGate from "@/components/MobileGate";
@@ -17,8 +17,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   const { token } = use(params);
   const router = useRouter();
 
-  const [contributor, setContributor] = useState<string>("");
-  const [addInput, setAddInput] = useState("");
   const [collectTarget, setCollectTarget] = useState<Item | null>(null);
   const [editTarget, setEditTarget] = useState<Item | null | "new">(null);
   const [showInvite, setShowInvite] = useState(false);
@@ -40,18 +38,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       onLoadingSlow: () => setSyncStatus("syncing"),
     }
   );
-
-  useEffect(() => {
-    const stored = sessionStorage.getItem("contributor_" + token);
-    if (stored) {
-      setContributor(stored);
-    } else {
-      // First visit without going through join page — set a default
-      const fallback = "Shopper";
-      sessionStorage.setItem("contributor_" + token, fallback);
-      setContributor(fallback);
-    }
-  }, [token]);
 
   if (sessError?.status === 404 || (sessError && !session)) {
     return (
@@ -78,19 +64,20 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
 
   const activeItems = items?.filter((i) => i.state !== "deleted") ?? [];
   const collectedItems = activeItems.filter((i) => i.state === "collected");
-  const addedItems = activeItems.filter((i) => i.state === "added");
+  const addedItems = activeItems.filter((i) => i.state === "active");
 
   const predictedTotal = collectedItems.reduce(
     (sum, i) => sum + (i.price ?? 0),
     0
   );
 
-  async function addItem(name: string, quantity: number) {
+  async function addItem(name: string, quantity: number, description: string | null) {
     setSyncStatus("syncing");
+    const participant_id = localStorage.getItem(`participant_${token}_id`);
     const res = await fetch(`/api/sessions/${token}/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, quantity, contributor_label: contributor }),
+      body: JSON.stringify({ name, quantity, collected_by: participant_id, description }),
     });
     if (res.ok) {
       await mutate();
@@ -107,8 +94,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
         state: "collected",
         quantity: qty,
         price,
-        contributor_label: contributor,
-        client_edit_at: item.edit_at,
+        updated_at: item.updated_at,
       }),
     });
     await mutate();
@@ -120,7 +106,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
     await fetch(`/api/sessions/${token}/items/${item.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ state: "added", client_edit_at: item.edit_at }),
+      body: JSON.stringify({ state: "created", updated_at: item.updated_at }),
     });
     await mutate();
     setSyncStatus("idle");
@@ -133,25 +119,17 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
     setSyncStatus("idle");
   }
 
-  async function saveEdit(name: string, quantity: number) {
+  async function saveEdit(name: string, quantity: number, description: string | null) {
     if (!editTarget || editTarget === "new") return;
     setSyncStatus("syncing");
     await fetch(`/api/sessions/${token}/items/${editTarget.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, quantity, client_edit_at: editTarget.edit_at }),
+      body: JSON.stringify({ name, quantity, description, updated_at: editTarget.updated_at }),
     });
     setEditTarget(null);
     await mutate();
     setSyncStatus("idle");
-  }
-
-  async function handleQuickAdd(e: React.FormEvent) {
-    e.preventDefault();
-    const name = addInput.trim();
-    if (!name) return;
-    setAddInput("");
-    await addItem(name, 1);
   }
 
   return (
@@ -356,7 +334,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       {collectTarget && (
         <CollectModal
           item={collectTarget}
-          contributorLabel={contributor}
           onDone={(qty, price) => {
             collectItem(collectTarget, qty, price);
             setCollectTarget(null);
@@ -368,11 +345,11 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       {editTarget && (
         <EditItemModal
           item={editTarget === "new" ? null : editTarget}
-          onDone={(name, qty) => {
+          onDone={(name, qty, description) => {
             if (editTarget === "new") {
-              addItem(name, qty);
+              addItem(name, qty, description);
             } else {
-              saveEdit(name, qty);
+              saveEdit(name, qty, description);
             }
             setEditTarget(null);
           }}

@@ -6,7 +6,7 @@ import Image from "next/image";
 
 interface Props {
   item: Item | null;  // null = adding new item
-  onDone: (name: string, quantity: number) => void;
+  onDone: (name: string, quantity: number, description: string | null) => void;
   onClose: () => void;
 }
 
@@ -22,7 +22,7 @@ export default function EditItemModal({ item, onDone, onClose }: Props) {
 
   function handleDone() {
     if (!name.trim()) return;
-    onDone(name.trim(), qty);
+    onDone(name.trim(), qty, description.trim() || null);
   }
 
   return (

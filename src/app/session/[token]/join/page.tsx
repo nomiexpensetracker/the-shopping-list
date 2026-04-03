@@ -12,9 +12,27 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
 
   function handleJoin(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
-    sessionStorage.setItem("contributor_" + token, name.trim());
-    router.push("/session/" + token);
+    setLoading(true);
+
+    fetch("/api/sessions/" + token + "/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name.trim() }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to join session");
+        return res.json();
+      })
+      .then((res) => {
+        // Store the participant name in localStorage for later retrieval
+        localStorage.setItem(`participant_${token}_id`, res.id);
+        localStorage.setItem(`participant_${token}_name`, name.trim());
+        router.push("/session/" + token);
+      })
+      .catch(() => {
+        alert("Something went wrong. Please try again.");
+        setLoading(false);
+      });
   }
 
   return (

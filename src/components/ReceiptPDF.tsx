@@ -50,7 +50,7 @@ export default function ReceiptPDF({ session, items }: Props) {
       // Build contributor map
       const contributionMap: Record<string, number> = {};
       for (const item of items) {
-        const who = item.contributor_label ?? "Unknown";
+        const who = item.collected_by ?? "Unknown";
         contributionMap[who] = (contributionMap[who] ?? 0) + 1;
       }
 

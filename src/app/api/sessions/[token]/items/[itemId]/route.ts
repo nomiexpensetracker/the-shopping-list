@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
+
 import { sql } from "@/lib/db";
+import type { ItemState } from "@/lib/types";
 import {
   isValidToken,
+  isValidPrice,
   isValidItemName,
   isValidQuantity,
-  isValidPrice,
-  isValidContributorLabel,
   isValidTransition,
+  isValidDescription,
+  isValidCollectedBy,
 } from "@/lib/validate";
-import type { ItemState } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +27,7 @@ export async function PATCH(req: Request, { params }: RouteContext) {
   }
 
   const [existing] = await sql`
-    SELECT id, session_id, state, edit_at FROM items
+    SELECT id, session_id, state, updated_at FROM items
     WHERE id = ${itemId} AND session_id = ${token}
   `;
 
@@ -40,17 +42,17 @@ export async function PATCH(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // Last-write-wins: only apply if the request's client_edit_at >= stored edit_at
+  // Last-write-wins: only apply if the request's client_edit_at >= stored updated_at
   // Client sends its local timestamp when it read the item. If it's older than what
   // the DB already has, the DB already processed a later write — reject.
   const clientEditAt = body.client_edit_at;
   if (clientEditAt !== undefined && clientEditAt !== null) {
     const clientTime = new Date(clientEditAt as string).getTime();
-    const serverTime = new Date(existing.edit_at as string).getTime();
+    const serverTime = new Date(existing.updated_at as string).getTime();
     if (clientTime < serverTime) {
       // Conflict: return the current authoritative state
       const [current] = await sql`
-        SELECT id, session_id, name, quantity, state, price, contributor_label, edit_at
+        SELECT id, session_id, name, quantity, state, price, updated_at
         FROM items WHERE id = ${itemId}
       `;
       return NextResponse.json({ conflict: true, item: current }, { status: 409 });
@@ -58,7 +60,6 @@ export async function PATCH(req: Request, { params }: RouteContext) {
   }
 
   // Validate and apply each permitted field
-  const updates: string[] = [];
   const updateValues: Record<string, unknown> = {};
 
   if ("name" in body) {
@@ -66,6 +67,13 @@ export async function PATCH(req: Request, { params }: RouteContext) {
       return NextResponse.json({ error: "Invalid item name" }, { status: 400 });
     }
     updateValues.name = (body.name as string).trim();
+  }
+
+  if ("description" in body) {
+    if (!isValidDescription(body.description)) {
+      return NextResponse.json({ error: "Invalid description" }, { status: 400 });
+    }
+    updateValues.description = body.description ?? null;
   }
 
   if ("quantity" in body) {
@@ -82,11 +90,18 @@ export async function PATCH(req: Request, { params }: RouteContext) {
     updateValues.price = body.price ?? null;
   }
 
-  if ("contributor_label" in body) {
-    if (!isValidContributorLabel(body.contributor_label)) {
-      return NextResponse.json({ error: "Invalid contributor label" }, { status: 400 });
+  if ("updated_by" in body) {
+    if (!isValidCollectedBy(body.updated_by)) {
+      return NextResponse.json({ error: "Invalid updated_by" }, { status: 400 });
     }
-    updateValues.contributor_label = body.contributor_label ?? null;
+    updateValues.updated_by = body.updated_by ?? null;
+  }
+
+  if ("collected_by" in body) {
+    if (!isValidCollectedBy(body.collected_by)) {
+      return NextResponse.json({ error: "Invalid collected_by" }, { status: 400 });
+    }
+    updateValues.collected_by = body.collected_by ?? null;
   }
 
   if ("state" in body) {
@@ -99,30 +114,23 @@ export async function PATCH(req: Request, { params }: RouteContext) {
       );
     }
     updateValues.state = newState;
-    // Clear price when uncollecting
-    if (newState === "added") {
-      updateValues.price = null;
-    }
   }
 
   // Build parameterised update using tagged template
-  // We update edit_at on every write (server-side clock wins for ordering)
+  // We update updated_at on every write (server-side clock wins for ordering)
   const [item] = await sql`
     UPDATE items SET
       name              = COALESCE(${updateValues.name as string | undefined ?? null}, name),
+      description       = COALESCE(${updateValues.description as string | undefined ?? null}, description),
       quantity          = COALESCE(${updateValues.quantity as number | undefined ?? null}, quantity),
       state             = COALESCE(${updateValues.state as string | undefined ?? null}, state),
-      price             = CASE
-                            WHEN ${"price" in updateValues} THEN ${updateValues.price as number | null}
-                            ELSE price
-                          END,
-      contributor_label = CASE
-                            WHEN ${"contributor_label" in updateValues} THEN ${updateValues.contributor_label as string | null}
-                            ELSE contributor_label
-                          END,
-      edit_at           = NOW()
+      price             = COALESCE(${updateValues.price as number | undefined ?? null}, price),
+      updated_at        = NOW(),
+      updated_by        = COALESCE(${updateValues.updated_by as string | undefined ?? null}, updated_by),
+      collected_at      = NOW(),
+      collected_by      = COALESCE(${updateValues.collected_by as string | undefined ?? null}, collected_by)
     WHERE id = ${itemId} AND session_id = ${token}
-    RETURNING id, session_id, name, quantity, state, price, contributor_label, edit_at
+    RETURNING id, session_id, name, quantity, state, price, updated_at
   `;
 
   await sql`UPDATE sessions SET last_active = NOW() WHERE id = ${token}`;
@@ -139,7 +147,7 @@ export async function DELETE(_req: Request, { params }: RouteContext) {
   }
 
   const [item] = await sql`
-    UPDATE items SET state = 'deleted', edit_at = NOW()
+    UPDATE items SET state = 'deleted', updated_at = NOW()
     WHERE id = ${itemId} AND session_id = ${token} AND state != 'deleted'
     RETURNING id
   `;
@@ -150,5 +158,5 @@ export async function DELETE(_req: Request, { params }: RouteContext) {
 
   await sql`UPDATE sessions SET last_active = NOW() WHERE id = ${token}`;
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ success: true });
 }

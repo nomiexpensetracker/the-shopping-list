@@ -30,7 +30,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
   // Group by contributor
   const contributionMap: Record<string, number> = {};
   for (const item of collectedItems) {
-    const who = item.contributor_label ?? "Unknown";
+    const who = item.collected_by ?? "Unknown";
     contributionMap[who] = (contributionMap[who] ?? 0) + 1;
   }
 
