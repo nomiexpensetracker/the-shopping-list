@@ -34,6 +34,7 @@ export interface Participant {
   joined_at: string;
   updated_at: string;
   session_id: string;
+  items_count: number;
 }
 
 export interface Activity {
@@ -55,6 +56,16 @@ export interface Summary {
   collected_items_count: string;
   collected_items_total_price: string;
   participants_count: string;
+}
+
+export interface Receipt {
+  session_id: string
+  session_name: string
+  session_date: string
+  session_time: string
+  participants: Participant[]
+  items: Item[]
+  total_price: string
 }
 
 /** Valid next states from a given current state. */

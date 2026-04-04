@@ -20,3 +20,12 @@ export function getUserColor(userId: string, data: Participant[]): string {
   const participant = data.find(p => p.id === userId);
   return participant ? participant.color : "#8df7c7";
 }
+
+// function to format date to locale date, default ID-id
+export function formatLocaleData(date: string, locale = "id-ID"): string {
+  return new Date(date).toLocaleDateString(locale, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
+}

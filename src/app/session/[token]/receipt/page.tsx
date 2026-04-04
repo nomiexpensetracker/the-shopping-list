@@ -1,10 +1,14 @@
 "use client";
 
-import { use } from "react";
 import useSWR from "swr";
-import type { Item, Session } from "@/types/dao";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { use, useMemo, useState } from "react";
+
+import QRCode from "@/components/QRCode";
+import { CommonResponse } from "@/types/dto";
+import type { Receipt, Session } from "@/types/dao";
+import { formatLocaleData, formatRupiah } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -17,66 +21,50 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
   const { token } = use(params);
   const router = useRouter();
 
-  const { data: session } = useSWR<Session>(`/api/sessions/${token}`, fetcher, {
-    revalidateOnFocus: false,
-  });
-  const { data: allItems } = useSWR<Item[]>(`/api/sessions/${token}/items`, fetcher, {
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const { data: receipt } = useSWR<CommonResponse<Receipt>>(`/api/sessions/${token}/receipt`, fetcher, {
     revalidateOnFocus: false,
   });
 
-  const collectedItems = allItems?.filter((i) => i.state === "collected") ?? [];
-  const total = collectedItems.reduce((s, i) => s + (i.price ?? 0), 0);
+  const session: Session = useMemo(() => {
+    return {
+      id: receipt?.data.session_id || '',
+      title: receipt?.data.session_name || '',
+      created_at: receipt?.data.session_date || '',
+      last_active: receipt?.data.session_date || '',
+    }
+  }, [receipt])
 
-  // Group by contributor
-  const contributionMap: Record<string, number> = {};
-  for (const item of collectedItems) {
-    const who = item.collected_by ?? "Unknown";
-    contributionMap[who] = (contributionMap[who] ?? 0) + 1;
+  const handleEndSession = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/sessions/${token}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json() as CommonResponse<undefined>;
+      // simply redirect to root page upon succesfull deletion
+      if (data.success) {
+        router.replace('/');
+      }
+    } catch (error) {
+      setError(`Oops something went wrong. Please try again. ${error}`);
+    } finally {
+      setLoading(false);
+    }
   }
-
-  const sessionDate = session?.created_at
-    ? new Date(session.created_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : "";
 
   return (
     <main
-      className="min-h-dvh"
+      className="min-h-dvh p-6 flex flex-col gap-6"
       style={{ background: "var(--background)" }}
     >
-      {/* Print button */}
-      <div className="p-4 flex gap-3">
-        <button
-          onClick={() => window.print()}
-          className="px-4 py-2 rounded-xl text-white text-sm font-semibold flex items-center gap-2 print:hidden"
-          style={{ background: "var(--brand)" }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="6 9 6 2 18 2 18 9" />
-            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-            <rect x="6" y="14" width="12" height="8" />
-          </svg>
-          Print Receipt
-        </button>
-        <button
-          onClick={() => router.push("/session/" + token)}
-          className="px-4 py-2 rounded-xl text-sm font-semibold print:hidden"
-          style={{
-            background: "var(--card)",
-            border: "1px solid var(--border)",
-            color: "var(--foreground)",
-          }}
-        >
-          Back to list
-        </button>
-      </div>
-
       {/* Receipt card */}
       <div
-        className="mx-4 mb-8 rounded-2xl p-6"
+        className="rounded-2xl p-6"
         style={{ background: "var(--card)" }}
       >
         {/* Header */}
@@ -85,32 +73,32 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
             className="text-2xl font-black tracking-widest uppercase"
             style={{ color: "var(--brand)" }}
           >
-            The Shopping List
+            {receipt?.data.session_name || "The Shopping List"}
           </h1>
           <p className="text-xs mt-2 uppercase tracking-widest" style={{ color: "var(--muted)" }}>
             Session ID: {token.slice(0, 16).toUpperCase()}
           </p>
           <p className="text-xs uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-            Date: {sessionDate}
+            Date: {receipt?.data.session_date ? formatLocaleData(receipt.data.session_date) : ""}
           </p>
         </div>
 
         <div className="border-t border-b py-3 mb-4" style={{ borderColor: "var(--border)" }}>
-          <p className="text-xs text-center uppercase tracking-widest mb-3" style={{ color: "var(--muted)" }}>
+          <p className="font-extrabold text-xs text-center uppercase tracking-widest mb-3" style={{ color: "var(--muted)" }}>
             Shopper Contributions
           </p>
-          {Object.entries(contributionMap).map(([name, count]) => (
+          {(receipt?.data.participants || []).map((participant, index) => (
             <div
-              key={name}
+              key={participant.id}
               className="flex items-center justify-between text-sm py-1"
               style={{ color: "var(--foreground)" }}
             >
-              <span>{name}</span>
+              <span>{participant.name}</span>
               <span
                 className="border-b flex-1 mx-2"
-                style={{ borderColor: "var(--border)", borderStyle: "dotted" }}
+                style={{ borderBottom: index !== (receipt?.data.participants.length || 0) - 1 ? "1px solid var(--border)" : "none" }}
               />
-              <span>{count} items</span>
+              <span>{participant.items_count} items</span>
             </div>
           ))}
         </div>
@@ -118,7 +106,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
         {/* Item rows */}
         <div className="mb-4">
           <div
-            className="grid grid-cols-[auto_1fr_auto] gap-x-3 text-xs uppercase tracking-widest pb-2 mb-2"
+            className="grid grid-cols-[auto_1fr_auto] gap-x-3 text-xs font-extrabold uppercase tracking-widest pb-2 mb-2"
             style={{
               color: "var(--muted)",
               borderBottom: "1px solid var(--border)",
@@ -128,11 +116,11 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
             <span>Description</span>
             <span className="text-right">Price</span>
           </div>
-          {collectedItems.map((item) => (
+          {(receipt?.data.items || []).sort((a, b) => a.name.localeCompare(b.name)).map((item, index) => (
             <div
               key={item.id}
               className="grid grid-cols-[auto_1fr_auto] gap-x-3 py-3"
-              style={{ borderBottom: "1px solid var(--border)" }}
+              style={{ borderBottom: index !== (receipt?.data.items.length || 0) - 1 ? "1px solid var(--border)" : "none" }}
             >
               <span
                 className="text-sm font-semibold w-8"
@@ -140,11 +128,16 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
               >
                 {item.quantity}
               </span>
-              <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                {item.name}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                  {item.name}
+                </span>
+                <span className="text-sm" style={{ color: "var(--foreground)" }}>
+                  {item.description}
+                </span>
+              </div>
               <span className="text-sm font-semibold text-right" style={{ color: "var(--foreground)" }}>
-                {item.price != null ? `$${item.price}` : "—"}
+                {item.price != null ? `${formatRupiah(item.price)}` : "—"}
               </span>
             </div>
           ))}
@@ -159,24 +152,46 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
             Total Amount
           </span>
           <span className="text-2xl font-black" style={{ color: "var(--brand)" }}>
-            ${total}
+            {receipt?.data.total_price ? `${formatRupiah(parseInt(receipt.data.total_price))}` : "—"}
           </span>
         </div>
+        
+        <div className="flex flex-col gap-2">
+          <p className="text-xs text-center font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--foreground)" }}>
+            Thank you for shopping!
+          </p>
 
-        <p className="text-xs text-center font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--foreground)" }}>
-          Thank you for shopping!
-        </p>
-        <p className="text-xs text-center mb-4" style={{ color: "var(--muted)" }}>
-          Session ID: {token.slice(0, 16).toUpperCase()}
-        </p>
+          <div
+            className="p-4 rounded-2xl w-fit mx-auto mt-4"
+            style={{ background: "var(--brand-light)" }}
+          >
+            <QRCode value={process.env.APP_URL || 'https://the-shopping-list-eight.vercel.app'} size={180} />
+          </div>
+          <p className="text-xs text-center mb-4" style={{ color: "var(--muted)" }}>
+            Session ID: {token.slice(0, 16).toUpperCase()}
+          </p>
+        </div>
       </div>
 
-      {/* PDF download (client only) */}
-      <div className="px-4 mb-10 print:hidden">
-        <ReceiptPDF
-          session={session ?? { id: token, title: "", created_at: "", last_active: "" }}
-          items={collectedItems}
-        />
+      {error && (
+        <p role="alert" className="text-red-500 text-sm">{error}</p>
+      )}
+
+      <div className="flex gap-2">
+        <div className="size-14">
+          <ReceiptPDF
+            session={session ?? { id: token, title: "", created_at: "", last_active: "" }}
+            items={receipt?.data.items || []}
+          />
+        </div>
+        <button
+          onClick={handleEndSession}
+          disabled={loading}
+          className="flex-1 h-14 flex items-center justify-center rounded-xl text-white font-semibold text-lg transition disabled:opacity-50"
+          style={{ background: "var(--brand)" }}
+        >
+          End Session
+        </button>
       </div>
     </main>
   );

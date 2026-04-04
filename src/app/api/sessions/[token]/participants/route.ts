@@ -46,14 +46,12 @@ export async function POST(
       success: true,
     });
   } catch (err) {
-    console.error("Transaction failed:", err);
-
     return NextResponse.json({
       data: null,
-      error: "Failed to join session",
+      error: `Failed to join session: ${err}`,
       status: 500,
       success: false,
-    }, { status: 500 });
+    });
   }
 
 }
