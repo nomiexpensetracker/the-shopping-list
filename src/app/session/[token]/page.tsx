@@ -75,10 +75,25 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
     return session?.data.participants.filter(p => p.id !== currentUserId) ?? [];
   }, [session, currentUserId]);
 
+  // define user role
+  const isUserHost = useMemo(() => {
+    if (!session || !currentUserId) return false;
+
+    const currentUser = session.data.participants.find((participant) => participant.id === currentUserId)
+    if (currentUser && currentUser.role === 'host') return true;
+    return false;
+  }, [session, currentUserId])
+
   const refetchAll = () => {
     setSyncStatus("syncing");
     mutateItems();
     mutateSummary();
+  }
+
+  // handle start new session
+  const handleStartNewSession = () => {
+    localStorage.clear();
+    router.push("/")
   }
 
   if (sessError?.status === 404 || (sessError && !session)) {
@@ -94,7 +109,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           This session link is invalid or has expired.
         </p>
         <button
-          onClick={() => router.push("/")}
+          onClick={handleStartNewSession}
           className="px-6 py-3 rounded-xl text-white font-semibold"
           style={{ background: "var(--brand)" }}
         >
@@ -338,15 +353,17 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
         )}
 
         {/* Floating Action Button */}
-        <button
-          id="fab-cart-action-button"
-          aria-label="Add item with details"
-          className="fixed bottom-22 right-6 size-14 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow"
-          style={{ background: "var(--brand-light)" }}
-          onClick={() => router.push(`/session/${token}/receipt`)}
-        >
-          <CartIcon fill="#1a6641"/>
-        </button>
+        {isUserHost && (
+          <button
+            id="fab-cart-action-button"
+            aria-label="Add item with details"
+            className="fixed bottom-22 right-6 size-14 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow"
+            style={{ background: "var(--brand-light)" }}
+            onClick={() => router.push(`/session/${token}/receipt`)}
+          >
+            <CartIcon fill="#1a6641"/>
+          </button>
+        )}
         <button
           id="fab-add-action-button"
           onClick={() => setEditTarget("new")}

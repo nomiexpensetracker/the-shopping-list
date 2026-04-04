@@ -50,8 +50,8 @@ export async function POST(req: Request) {
         VALUES (${sessionId}, ${title})
       `,
       sql`
-        INSERT INTO session_participants (id, name, session_id, color)
-        VALUES (${participantId}, ${name}, ${sessionId}, ${participantColor})
+        INSERT INTO session_participants (id, name, color, session_id, role)
+        VALUES (${participantId}, ${name}, ${participantColor}, ${sessionId}, 'host')
       `,
     ]);
 

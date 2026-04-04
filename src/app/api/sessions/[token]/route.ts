@@ -25,6 +25,7 @@ export async function GET(
         json_build_object(
           'id', session_participants.id,
           'name', session_participants.name,
+          'role', session_participants.role,
           'color', session_participants.color
         )
       ) FILTER (WHERE session_participants.id IS NOT NULL) as participants

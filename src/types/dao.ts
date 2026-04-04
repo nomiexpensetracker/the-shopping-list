@@ -1,5 +1,6 @@
 export type ItemState = "active" | "deleted" | "restored" | "collected" ;
 export type ActivityType = "created" | "updated" | "deleted" | "restored" | "collected";
+export type ParticipantRole = "host" | "member";
 
 export interface Item {
   id: string;
@@ -27,11 +28,12 @@ export interface Session {
 
 export interface Participant {
   id: string;
-  session_id: string;
   name: string;
+  role: ParticipantRole
   color: string;
   joined_at: string;
   updated_at: string;
+  session_id: string;
 }
 
 export interface Activity {
