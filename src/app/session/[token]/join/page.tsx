@@ -4,6 +4,8 @@ import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import MobileGate from "@/components/MobileGate";
 import Image from "next/image";
+import { CommonResponse } from "@/types/dto";
+import { Participant } from "@/types/dao";
 
 export default function JoinPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
@@ -13,30 +15,36 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function handleJoin(e: React.FormEvent) {
+  async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    fetch("/api/sessions/" + token + "/participants", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim() }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to join session");
-        return res.json();
+    try {
+      const res = await fetch("/api/sessions/" + token + "/participants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
       })
-      .then((res) => {
-        // Store the participant name in localStorage for later retrieval
-        localStorage.setItem(`participant_${token}_id`, res.id);
-        localStorage.setItem(`participant_${token}_name`, name.trim());
-        router.push("/session/" + token);
-      })
-      .catch(() => {
-        setError("Something went wrong. Please try again.");
-        setLoading(false);
-      });
+
+      const data = await res.json() as CommonResponse<Participant>;
+      
+      if (!data.success) throw new Error("Failed to create session");
+
+      const participantData = data.data;
+      // store data in localStorage for later use in session page
+      localStorage.setItem(`participant_${token}_id`, participantData.id);
+      localStorage.setItem(`participant_${token}_name`, participantData.name);
+      localStorage.setItem(`participant_${token}_color`, participantData.color);
+
+      // navigate to session page
+      router.push("/session/" + token);
+      
+    } catch (error) {
+      setError(`Something went wrong. Please try again. ${JSON.stringify(error)}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

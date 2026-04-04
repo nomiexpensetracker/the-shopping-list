@@ -15,6 +15,7 @@ import EditItemModal from "@/components/EditItemModal";
 import ParticipantToast from "@/components/ParticipantToast";
 import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
 import { formatRupiah, getUserColor } from "@/lib/utils";
+import { AddIcon, CartIcon } from "@/components/icons";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -231,16 +232,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           >
             <Image src="/icons/share.svg" alt="Invite" width={24} height={24} />
           </button>
-
-          {/* Receipt */}
-          <button
-            onClick={() => router.push(`/session/${token}/receipt`)}
-            aria-label="View receipt"
-            className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ color: "var(--brand)" }}
-          >
-            <Image src="/icons/log-out.svg" alt="end-session" width={24} height={24} />
-          </button>
         </div>
       </header>
 
@@ -346,15 +337,24 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           </div>
         )}
 
-        {/* Bottom input bar */}
+        {/* Floating Action Button */}
         <button
-          id="fab-floating-action-button"
+          id="fab-cart-action-button"
+          aria-label="Add item with details"
+          className="fixed bottom-22 right-6 size-14 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow"
+          style={{ background: "var(--brand-light)" }}
+          onClick={() => router.push(`/session/${token}/receipt`)}
+        >
+          <CartIcon fill="#1a6641"/>
+        </button>
+        <button
+          id="fab-add-action-button"
           onClick={() => setEditTarget("new")}
           aria-label="Add item with details"
           className="fixed bottom-6 right-6 size-14 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow"
           style={{ background: "var(--brand)" }}
         >
-          <Image src="/icons/add-plus.svg" alt="Add item" width={24} height={24} />
+          <AddIcon />
         </button>
       </main>
 

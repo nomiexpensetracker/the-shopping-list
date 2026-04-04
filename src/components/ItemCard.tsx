@@ -54,7 +54,7 @@ const ItemCard = ({
             ({items.length})
           </span>
         </div>
-        <button
+        <div
           style={{
             color: "var(--muted)",
             transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
@@ -62,7 +62,7 @@ const ItemCard = ({
           }}
         >
           <ChevronIcon fill="#636262" />
-        </button>
+        </div>
       </button>
 
       {/* Items */}

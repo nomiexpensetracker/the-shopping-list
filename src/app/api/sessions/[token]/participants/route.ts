@@ -30,21 +30,32 @@ export async function POST(
   const participantId = generateSessionParticipantId();
   const participantColor = getRandomHexColor();
 
-  await sql`
-    INSERT INTO session_participants (id, name, color, session_id)
-    VALUES (${participantId}, ${name.trim()}, ${participantColor}, ${token})
-  `;
+  try {
+    await sql`
+      INSERT INTO session_participants (id, name, color, session_id)
+      VALUES (${participantId}, ${name.trim()}, ${participantColor}, ${token})
+    `;
+  
+    return NextResponse.json({
+      data: {
+        id: participantId,
+        name: name.trim(),
+        color: participantColor
+      },
+      status: 201,
+      success: true,
+    });
+  } catch (err) {
+    console.error("Transaction failed:", err);
 
-  return NextResponse.json({
-    data: {
-      message: "Joined session",
-      participant_id: participantId,
-      participant_name: name.trim(),
-      participant_color: participantColor
-    },
-    status: 201,
-    success: true,
-  });
+    return NextResponse.json({
+      data: null,
+      error: "Failed to join session",
+      status: 500,
+      success: false,
+    }, { status: 500 });
+  }
+
 }
 
 // PATCH /api/sessions/[token]/participants — update a participant in a session
