@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 
-import type { Item } from "@/types/dao";
-import { formatRupiah } from "@/lib/utils";
+import type { Item, Participant } from "@/types/dao";
+import { formatRupiah, getUserColor } from "@/lib/utils";
 
 import { AddIcon, ChevronIcon, RemoveIcon, TrashIcon, UploadIcon } from "./icons";
 
 interface Props {
   title: string;
   items: Item[];
-  participantColor: string;
+  participants: Participant[];
   defaultExpanded?: boolean;
   onEdit?: (item: Item) => void;
   onDelete?: (item: Item) => void;
@@ -25,7 +25,7 @@ const ItemCard = ({
   onDelete,
   onEdit,
   onRestore,
-  participantColor,
+  participants,
   defaultExpanded = true,
 }: Props) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -79,7 +79,7 @@ const ItemCard = ({
                 }}
               >
                 {/* Color User Indicator */}
-                <div className="h-10 w-2 rounded-sm" style={{ background: participantColor }}></div>
+                <div className="h-10 w-2 rounded-sm" style={{ background: getUserColor(item.created_by, participants) }}></div>
                 {/* Checkbox */}
                 {item.state === 'active' && onCollect && (
                   <button

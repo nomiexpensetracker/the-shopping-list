@@ -27,7 +27,7 @@ export async function GET(
       (
         SELECT COUNT(*)
         FROM items i
-        WHERE i.session_id = s.id
+        WHERE i.session_id = s.id AND i.state != 'deleted'
       ) AS total_items_count,
 
       -- collected items count

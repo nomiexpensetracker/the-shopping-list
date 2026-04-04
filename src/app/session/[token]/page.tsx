@@ -5,7 +5,7 @@ import useSWR from "swr";
 import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { Item, Session, Summary } from "@/types/dao";
+import type { Item, Summary } from "@/types/dao";
 
 import ItemCard from "@/components/ItemCard";
 import MobileGate from "@/components/MobileGate";
@@ -13,9 +13,11 @@ import InviteModal from "@/components/InviteModal";
 import CollectModal from "@/components/CollectModal";
 import EditItemModal from "@/components/EditItemModal";
 import ParticipantToast from "@/components/ParticipantToast";
-import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
-import { formatRupiah, getUserColor } from "@/lib/utils";
+import ParticipantAvatars from "@/components/ParticipantAvatars";
 import { AddIcon, CartIcon } from "@/components/icons";
+
+import { formatRupiah } from "@/lib/utils";
+import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -28,50 +30,50 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   const [showInvite, setShowInvite] = useState(false);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "error">("idle");
 
-  const { data: session, error: sessError } = useSWR<Session>(
+  // fetch session details, including participants 
+  const { data: session, error: sessError } = useSWR<CommonResponse<GetSessionDetailResponse>>(
     `/api/sessions/${token}`,
     fetcher,
-    { revalidateOnFocus: false }
+    {
+      refreshInterval: 30 * 1000,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
   );
 
+  // fetch session summary with items total count, item collected count, item collected total price, and participants count
   const { data: summary, mutate: mutateSummary } = useSWR<CommonResponse<Summary>>(
     `/api/sessions/${token}/summary`,
     fetcher,
     {
-      refreshInterval: 30 * 60 * 1000, // auto-refresh every 30 mins
+      refreshInterval: 30 * 1000,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
       onSuccess: () => setSyncStatus("idle"),
       onError: () => setSyncStatus("error"),
       onLoadingSlow: () => setSyncStatus("syncing"),
     }
   );
 
+  // fetch list all items
   const { data: items, mutate: mutateItems } = useSWR<CommonResponse<Item[]>>(
     `/api/sessions/${token}/items`,
     fetcher,
     {
-      refreshInterval: 30 * 60 * 1000, // auto-refresh every 30 mins
+      refreshInterval: 30 * 1000,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
       onSuccess: () => setSyncStatus("idle"),
       onError: () => setSyncStatus("error"),
       onLoadingSlow: () => setSyncStatus("syncing"),
     }
-  );
-
-  const { data: sessions } = useSWR<CommonResponse<GetSessionDetailResponse>>(
-    `/api/sessions/${token}`,
-    fetcher,
-    { refreshInterval: 30 * 60 * 1000 } // auto-refresh every 30 mins to capture new participants
   );
 
   // filter current user out of the participants list to avoid showing their own join toast
   const currentUserId = localStorage.getItem(`participant_${token}_id`)
   const filteredParticipants = useMemo(() => {
-    return sessions?.data.participants.filter(p => p.id !== currentUserId) ?? [];
-  }, [sessions, currentUserId]);
-
-  const userColor = useMemo(() => {
-    if (!currentUserId || !sessions) return "#000000";
-    return getUserColor(currentUserId, sessions?.data.participants ?? []);
-  }, [currentUserId, sessions]);
+    return session?.data.participants.filter(p => p.id !== currentUserId) ?? [];
+  }, [session, currentUserId]);
 
   const refetchAll = () => {
     setSyncStatus("syncing");
@@ -122,7 +124,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
-    console.log("🚀 ~ addItem ~ res:", res)
     if (res.ok) {
       refetchAll();
     }
@@ -201,27 +202,26 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           borderBottom: "1px solid var(--border)",
         }}
       >
-        <h1
-          className="text-xl font-extrabold truncate max-w-[60%]"
-          style={{ color: "var(--brand)" }}
-        >
-          {session?.title || "Shopping List"}
-        </h1>
+        <div className="max-w-[60%] flex flex-col">
+          <h1
+            className="text-xl font-extrabold truncate"
+            style={{ color: "var(--brand)" }}
+          >
+            {session?.data.title || "Shopping List"}
+          </h1>
+          {syncStatus !== 'idle' && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
+                {syncStatus === 'syncing' ? 'Syncing' : 'Sync Error'}
+              </span>
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-2">
-          {/* Sync status */}
-          <span
-            className="text-xs"
-            role="status"
-            aria-live="polite"
-            style={{ color: syncStatus === "error" ? "#ef4444" : "var(--muted)" }}
-          >
-            {syncStatus === "syncing"
-              ? "Syncing…"
-              : syncStatus === "error"
-              ? "Sync error"
-              : ""}
-          </span>
+          {/* Participant avatars */}
+          <ParticipantAvatars participants={session?.data.participants ?? []} />
 
           {/* Invite */}
           <button
@@ -297,7 +297,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
         )}
 
         {/* Participant Toast */}
-        {sessions?.data && filteredParticipants.length > 0 && (
+        {session?.data && filteredParticipants.length > 0 && (
           <div className="w-full">
             <ParticipantToast participants={filteredParticipants} />
           </div>
@@ -310,7 +310,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
               <ItemCard
                 title="To Collect"
                 items={addedItems}
-                participantColor={userColor}
+                participants={session?.data.participants || []}
                 onEdit={updateItem}
                 onDelete={deleteItem}
                 onCollect={(i) => setCollectTarget(i)}
@@ -321,7 +321,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
               <ItemCard
                 title="Collected"
                 items={collectedItems}
-                participantColor={userColor}
+                participants={session?.data.participants || []}
               />
             )}
 
@@ -330,7 +330,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
                 title="Deleted"
                 items={deletedItems}
                 defaultExpanded={false}
-                participantColor={userColor}
+                participants={session?.data.participants || []}
                 onRestore={restoreItem}
               />
             )}

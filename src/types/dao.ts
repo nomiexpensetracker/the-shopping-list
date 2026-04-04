@@ -9,13 +9,13 @@ export interface Item {
   quantity: number;
   state: ItemState;
   price: number;
-  created_by: string | null;
-  updated_by: string | null;
-  collected_by: string | null;
+  created_by: string;
+  updated_by: string;
+  collected_by: string;
   created_at: string;
   updated_at: string;
-  collected_at: string | null;
-  deleted_at: string | null;
+  collected_at: string;
+  deleted_at: string;
 }
 
 export interface Session {
