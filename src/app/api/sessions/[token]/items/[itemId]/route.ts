@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { sql } from "@/lib/db";
-import type { ItemState } from "@/types/dao";
 import {
   isValidToken,
   isValidPrice,
   isValidItemName,
   isValidQuantity,
-  isValidTransition,
   isValidDescription,
   isValidCollectedBy,
 } from "@/lib/validate";
@@ -105,15 +103,11 @@ export async function PATCH(req: Request, { params }: RouteContext) {
   }
 
   if ("state" in body) {
-    const newState = body.state as ItemState;
-    const currentState = existing.state as ItemState;
-    if (!isValidTransition(currentState, newState)) {
-      return NextResponse.json(
-        { error: `Invalid transition: ${currentState} → ${newState}` },
-        { status: 400 }
-      );
+    const state = body.state as string;
+    if (state !== "active" && state !== "deleted" && state !== "restored" && state !== "collected") {
+      return NextResponse.json({ error: "Invalid state" }, { status: 400 });
     }
-    updateValues.state = newState;
+    updateValues.state = state;
   }
 
   // Build parameterised update using tagged template
@@ -130,7 +124,7 @@ export async function PATCH(req: Request, { params }: RouteContext) {
       collected_at      = NOW(),
       collected_by      = COALESCE(${updateValues.collected_by as string | undefined ?? null}, collected_by)
     WHERE id = ${itemId} AND session_id = ${token}
-    RETURNING id, session_id, name, quantity, state, price, updated_at
+    RETURNING id, session_id, name, quantity, state, price, updated_at, updated_by, collected_at, collected_by
   `;
 
   await sql`UPDATE sessions SET last_active = NOW() WHERE id = ${token}`;

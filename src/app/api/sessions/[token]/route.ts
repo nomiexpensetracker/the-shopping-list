@@ -35,10 +35,10 @@ export async function GET(
   `;
 
   if (rows.length === 0) {
-    return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    return NextResponse.json({ error: "Session not found", success: false, status: 404 });
   }
 
-  return NextResponse.json(rows[0]);
+  return NextResponse.json({ data: rows[0], success: true, status: 200 });
 }
 
 // DELETE /api/sessions/[token] — delete a session
@@ -49,12 +49,12 @@ export async function DELETE(
   const { token } = await params;
 
   if (!isValidToken(token)) {
-    return NextResponse.json({ error: "Invalid session token" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid session token", success: false, status: 400 });
   }
 
   await sql`
     DELETE FROM sessions WHERE id = ${token}
   `;
 
-  return NextResponse.json({ message: "Session deleted" });
+  return NextResponse.json({ success: true, status: 200 });
 }

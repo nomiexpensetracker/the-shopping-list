@@ -1,3 +1,5 @@
+import { Participant } from "@/types/dao";
+
 // function to generate a random hex color 
 export function getRandomHexColor(): string {
   const letters = '0123456789ABCDEF';
@@ -11,4 +13,10 @@ export function getRandomHexColor(): string {
 // function to format number to rupiah currency format
 export function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+}
+
+// function to get user color based on current user id and participants data
+export function getUserColor(userId: string, data: Participant[]): string {
+  const participant = data.find(p => p.id === userId);
+  return participant ? participant.color : "#8df7c7";
 }

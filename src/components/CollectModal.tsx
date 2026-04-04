@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Item } from "@/types/dao";
 
 import QuantityEditor from "./quantity-editor";
+import Image from "next/image";
 
 interface Props {
   item: Item;
@@ -56,7 +57,7 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
             {item.name}
           </h2>
           <p className="text-sm text-center mt-1" style={{ color: "var(--muted)" }}>
-            Log collection details
+            {item.description}
           </p>
         </div>
 
@@ -70,7 +71,7 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
             className="text-xs font-semibold uppercase tracking-widest mb-3 block"
             style={{ color: "var(--muted)" }}
           >
-            Item Price (Per Unit - Optional) 
+            Item Price (Per Unit - Optional)
           </label>
           <div
             className="flex items-center rounded-xl px-4 h-14"
@@ -99,13 +100,22 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
           </div>
         </div>
 
-        <button
-          onClick={handleDone}
-          className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 transition"
-          style={{ background: "var(--brand)" }}
-        >
-          Done
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center"
+            style={{ background: "var(--background)", color: "var(--foreground)" }}
+          >
+            <Image src="/icons/close.svg" alt="Cancel" width={24} height={24} />
+          </button>
+          <button
+            onClick={handleDone}
+            className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 transition"
+            style={{ background: "var(--brand)" }}
+          >
+            Done
+          </button>
+        </div>
       </div>
     </div>
   );

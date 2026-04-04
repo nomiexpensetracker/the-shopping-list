@@ -20,3 +20,11 @@ export interface PostItemRequest {
   created_by: string;
   description?: string | null;
 }
+
+export interface GetSessionDetailResponse {
+  id: string
+  title: string
+  created_at: string
+  last_active: string
+  participants: Participant[]
+}

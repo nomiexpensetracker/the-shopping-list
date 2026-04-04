@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import useSWR from "swr";
-import { use, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { Item, Session, Summary } from "@/types/dao";
@@ -12,8 +12,9 @@ import MobileGate from "@/components/MobileGate";
 import InviteModal from "@/components/InviteModal";
 import CollectModal from "@/components/CollectModal";
 import EditItemModal from "@/components/EditItemModal";
-import { CommonResponse, PostItemRequest } from "@/types/dto";
-import { formatRupiah } from "@/lib/utils";
+import ParticipantToast from "@/components/ParticipantToast";
+import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
+import { formatRupiah, getUserColor } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -54,6 +55,23 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
     }
   );
 
+  const { data: sessions } = useSWR<CommonResponse<GetSessionDetailResponse>>(
+    `/api/sessions/${token}`,
+    fetcher,
+    { refreshInterval: 30 * 60 * 1000 } // auto-refresh every 30 mins to capture new participants
+  );
+
+  // filter current user out of the participants list to avoid showing their own join toast
+  const currentUserId = localStorage.getItem(`participant_${token}_id`)
+  const filteredParticipants = useMemo(() => {
+    return sessions?.data.participants.filter(p => p.id !== currentUserId) ?? [];
+  }, [sessions, currentUserId]);
+
+  const userColor = useMemo(() => {
+    if (!currentUserId || !sessions) return "#000000";
+    return getUserColor(currentUserId, sessions?.data.participants ?? []);
+  }, [currentUserId, sessions]);
+
   const refetchAll = () => {
     setSyncStatus("syncing");
     mutateItems();
@@ -85,6 +103,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
 
   const activeItems = items?.data.filter((i) => i.state !== "deleted") ?? [];
   const addedItems = activeItems.filter((i) => i.state === "active");
+  const deletedItems = items?.data.filter((i) => i.state === "deleted") ?? [];
   const collectedItems = activeItems.filter((i) => i.state === "collected");
 
   const predictedTotal = collectedItems.reduce(
@@ -102,8 +121,9 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
+    console.log("🚀 ~ addItem ~ res:", res)
     if (res.ok) {
-      await refetchAll();
+      refetchAll();
     }
     setSyncStatus("idle");
   }
@@ -121,25 +141,36 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
         collected_by: participantId,
       }),
     });
-    await refetchAll();
-    setSyncStatus("idle");
-  }
-
-  const uncollectItem = async (item: Item) => {
-    setSyncStatus("syncing");
-    await fetch(`/api/sessions/${token}/items/${item.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ state: "created", updated_at: item.updated_at }),
-    });
-    await refetchAll();
+    refetchAll();
     setSyncStatus("idle");
   }
 
   const deleteItem = async (item: Item) => {
     setSyncStatus("syncing");
     await fetch(`/api/sessions/${token}/items/${item.id}`, { method: "DELETE" });
-    await refetchAll();
+    refetchAll();
+    setSyncStatus("idle");
+  }
+
+  const updateItem = async (item: Item) => {
+    setSyncStatus("syncing");
+    await fetch(`/api/sessions/${token}/items/${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quantity: item.quantity, updated_at: item.updated_at, updated_by: currentUserId ?? '' }),
+    });
+    refetchAll();
+    setSyncStatus("idle");
+  }
+
+  const restoreItem = async (item: Item) => {
+    setSyncStatus("syncing");
+    await fetch(`/api/sessions/${token}/items/${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: "active", updated_at: item.updated_at, updated_by: currentUserId ?? '' }),
+    });
+    refetchAll();
     setSyncStatus("idle");
   }
 
@@ -149,10 +180,10 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
     await fetch(`/api/sessions/${token}/items/${editTarget.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, quantity, description, updated_at: editTarget.updated_at }),
+      body: JSON.stringify({ name, quantity, description, updated_at: editTarget.updated_at, updated_by: currentUserId ?? '' }),
     });
     setEditTarget(null);
-    await refetchAll();
+    refetchAll();
     setSyncStatus("idle");
   }
 
@@ -214,7 +245,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       </header>
 
       <main
-        className="min-h-dvh flex flex-col relative px-4 py-6"
+        className="min-h-dvh flex flex-col relative px-4 py-6 gap-6"
         style={{ background: "var(--background)" }}
       >
         {/* Stats bar */}
@@ -248,13 +279,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           </div>
         )}
 
-        {/* Empty state */}
-        {!items && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: "var(--brand)", borderTopColor: "transparent" }} />
-          </div>
-        )}
-
         {items && activeItems.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
             <div
@@ -281,61 +305,43 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           </div>
         )}
 
+        {/* Participant Toast */}
+        {sessions?.data && filteredParticipants.length > 0 && (
+          <div className="w-full">
+            <ParticipantToast participants={filteredParticipants} />
+          </div>
+        )}
+
         {/* List */}
         {activeItems.length > 0 && (
-          <div className="flex-1 overflow-y-auto px-4 pb-32" style={{ background: "var(--main-bg)" }}>
+          <div className="flex flex-col flex-1 gap-4 overflow-y-auto">
             {addedItems.length > 0 && (
-              <section className="mb-4">
-                <h2
-                  className="text-sm font-semibold py-3 flex items-center justify-between"
-                  style={{ color: "var(--brand)" }}
-                >
-                  <span>To Collect</span>
-                  <span
-                    className="text-xs rounded-full px-2 py-0.5"
-                    style={{ background: "var(--brand-light)", color: "var(--brand)" }}
-                  >
-                    {addedItems.length}
-                  </span>
-                </h2>
-                {addedItems.map((item) => (
-                  <ItemCard
-                    key={item.id}
-                    item={item}
-                    onCollect={(i) => setCollectTarget(i)}
-                    onUncollect={uncollectItem}
-                    onDelete={deleteItem}
-                    onEdit={(i) => setEditTarget(i)}
-                  />
-                ))}
-              </section>
+              <ItemCard
+                title="To Collect"
+                items={addedItems}
+                participantColor={userColor}
+                onEdit={updateItem}
+                onDelete={deleteItem}
+                onCollect={(i) => setCollectTarget(i)}
+              />
             )}
 
             {collectedItems.length > 0 && (
-              <section className="mb-4">
-                <h2
-                  className="text-sm font-semibold py-3 flex items-center justify-between"
-                  style={{ color: "var(--collected-text)" }}
-                >
-                  <span>Collected</span>
-                  <span
-                    className="text-xs rounded-full px-2 py-0.5"
-                    style={{ background: "var(--collected-bg)", color: "var(--collected-text)" }}
-                  >
-                    {collectedItems.length}
-                  </span>
-                </h2>
-                {collectedItems.map((item) => (
-                  <ItemCard
-                    key={item.id}
-                    item={item}
-                    onCollect={(i) => setCollectTarget(i)}
-                    onUncollect={uncollectItem}
-                    onDelete={deleteItem}
-                    onEdit={(i) => setCollectTarget(i)}
-                  />
-                ))}
-              </section>
+              <ItemCard
+                title="Collected"
+                items={collectedItems}
+                participantColor={userColor}
+              />
+            )}
+
+            {deletedItems.length > 0 && (
+              <ItemCard
+                title="Deleted"
+                items={deletedItems}
+                defaultExpanded={false}
+                participantColor={userColor}
+                onRestore={restoreItem}
+              />
             )}
           </div>
         )}

@@ -38,6 +38,8 @@
   --border: #2d4a2d;
   --collected-bg: #14532d;
   --collected-text: #86efac;
+  --quantity-bg: #1a2e1a;
+  --main-bg: #0f1a13;
 }
 
 * {

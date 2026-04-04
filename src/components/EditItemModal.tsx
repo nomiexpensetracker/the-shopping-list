@@ -62,7 +62,7 @@ export default function EditItemModal({ item, onDone, onClose }: Props) {
             placeholder="e.g. Organic Avocados"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            maxLength={200}
+            maxLength={26}
             className="w-full px-4 py-3 rounded-xl text-base focus:outline-none"
             style={{
               background: "var(--background)",
