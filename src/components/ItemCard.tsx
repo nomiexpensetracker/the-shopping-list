@@ -6,6 +6,7 @@ import type { Item, Participant } from "@/types/dao";
 import { formatRupiah, getUserColor } from "@/lib/utils";
 
 import { AddIcon, ChevronIcon, RemoveIcon, TrashIcon, UploadIcon } from "./icons";
+import { useDebounce } from "@/lib/hooks";
 
 interface Props {
   title: string;
@@ -29,6 +30,14 @@ const ItemCard = ({
   defaultExpanded = true,
 }: Props) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
+
+  // debounce edit quantity to avoid excessive calls when user clicks increase/decrease buttons rapidly
+  const handleDebounceChangeQty = useDebounce((item: Item, newQty: number) => {
+    if (newQty !== item.quantity && onEdit) {
+      onEdit({ ...item, quantity: newQty });
+    }
+  }, 500);
 
   return (
     <div
@@ -69,6 +78,14 @@ const ItemCard = ({
       {isExpanded && (
         <div id={`item-group-${title}`}>
           {items.sort((a, b) => a.name.localeCompare(b.name)).map((item, idx) => {
+            const qty = qtyMap[item.id] ?? item.quantity;
+            // handle debounce increase/decrease buttons
+            const handleChangeQty = (newQty: number) => {
+              setQtyMap((prev) => ({ ...prev, [item.id]: newQty }));
+
+              handleDebounceChangeQty(item, newQty);
+            };
+
             return (
               <div
                 key={item.id}
@@ -93,14 +110,14 @@ const ItemCard = ({
                     }}
                   >
                     <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-                        <path
-                          d="M2 6l3 3 5-5"
-                          stroke="white"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                      <path
+                        d="M2 6l3 3 5-5"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </button>
                 )}
 
@@ -134,29 +151,33 @@ const ItemCard = ({
                     </button>
                   </div>
                 )}
-                
+
                 {item.state === 'active' && onEdit && onDelete && (
                   <div className="w-24 h-10 py-1 px-2 rounded-lg flex items-center justify-between" style={{ background: "var(--background)" }}>
                     <div className='size-6'>
                       <button
                         id="decrease-quantity"
                         aria-label="Decrease quantity"
-                        onClick={() => item.quantity === 1 ? onDelete(item) : onEdit({...item, quantity: item.quantity - 1})}
+                        onClick={() => item.quantity === 1 ? onDelete(item) : handleChangeQty(qty - 1)}
                         className="size-6 text-2xl font-bold flex items-center justify-center"
                       >
                         {item.quantity === 1 ? <TrashIcon fill="#636262" /> : <RemoveIcon fill="#636262" />}
                       </button>
                     </div>
-                    <span
-                      className="text-base font-bold w-6 text-center shrink-0" style={{ color: "var(--brand)" }}
-                    >
-                      {item.quantity}
-                    </span>
+                    <div className="flex-1">
+                      <input
+                        type="number"
+                        value={qty}
+                        onChange={(e) => handleChangeQty(Math.max(1, Math.min(999, Number(e.target.value))))}
+                        className="w-full text-center text-base font-bold bg-transparent focus:outline-none"
+                        style={{ color: "var(--foreground)" }}
+                      />
+                    </div>
                     <div className='size-6'>
                       <button
                         id="increase-quantity"
                         aria-label="Increase quantity"
-                        onClick={() => onEdit({...item, quantity: item.quantity + 1})}
+                        onClick={() => handleChangeQty(qty + 1)}
                         className="size-6 text-2xl font-bold flex items-center justify-center"
                       >
                         <AddIcon fill="#065f46" />

@@ -14,10 +14,11 @@ import CollectModal from "@/components/CollectModal";
 import EditItemModal from "@/components/EditItemModal";
 import ParticipantToast from "@/components/ParticipantToast";
 import ParticipantAvatars from "@/components/ParticipantAvatars";
-import { AddIcon, CartIcon } from "@/components/icons";
+import { AddIcon, CartIcon, ShareIcon } from "@/components/icons";
 
 import { formatRupiah } from "@/lib/utils";
 import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -245,14 +246,21 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
             className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{ color: "var(--brand)" }}
           >
-            <Image src="/icons/share.svg" alt="Invite" width={24} height={24} />
+            <ShareIcon fill="var(--foreground)" />
           </button>
+
+          {/* Theme toggle */}
+          <ThemeToggle />
         </div>
       </header>
 
       <main
-        className="min-h-dvh flex flex-col relative px-4 py-6 gap-6"
-        style={{ background: "var(--background)" }}
+        className="flex flex-col relative px-4 py-6 gap-6"
+        style={{
+          background: "var(--background)",
+          height: "calc(100dvh - 80px)",
+          overflow: "hidden",
+        }}
       >
         {/* Stats bar */}
         {activeItems.length > 0 && (
@@ -291,14 +299,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
               className="w-36 h-36 rounded-2xl flex items-center justify-center"
               style={{ background: "var(--card)" }}
             >
-              <div
-                className="w-24 h-24 rounded-xl border-2 border-dashed flex items-center justify-center"
-                style={{ borderColor: "var(--border)" }}
-              >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: "var(--border)" }}>
-                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              </div>
+              <Image src="/empty-shopping-cart.png" alt="No items" width={225} height={225} />
             </div>
             <div>
               <p className="text-2xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
@@ -361,7 +362,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
             style={{ background: "var(--brand-light)" }}
             onClick={() => router.push(`/session/${token}/receipt`)}
           >
-            <CartIcon fill="#1a6641"/>
+            <CartIcon fill="var(--brand)" />
           </button>
         )}
         <button

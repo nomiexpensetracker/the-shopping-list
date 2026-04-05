@@ -48,6 +48,9 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
       const data = await res.json() as CommonResponse<undefined>;
       // simply redirect to root page upon succesfull deletion
       if (data.success) {
+        localStorage.removeItem(`participant_${token}_id`);
+        localStorage.removeItem(`participant_${token}_name`);
+        localStorage.removeItem(`participant_${token}_color`);
         router.replace('/');
       }
     } catch (error) {
