@@ -1,21 +1,17 @@
 "use client";
 
 import useSWR from "swr";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { use, useMemo, useState } from "react";
 
 import QRCode from "@/components/QRCode";
 import { CommonResponse } from "@/types/dto";
+import { useReceiptExport } from "@/lib/hooks";
 import type { Receipt, Session } from "@/types/dao";
+import { DownloadIcon, ReloadIcon } from "@/components/icons";
 import { formatLocaleData, formatRupiah } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
-const ReceiptPDF = dynamic(() => import("@/components/ReceiptPDF"), {
-  ssr: false,
-  loading: () => null,
-});
 
 export default function ReceiptPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
@@ -36,6 +32,9 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
       last_active: receipt?.data.session_date || '',
     }
   }, [receipt])
+
+  const filename = `digital-receipt-${session.title.toLowerCase().replaceAll(" ", "-") || ""}-${token.slice(0, 16)}.pdf`;
+  const { receiptRef, exportToPDF, isExporting } = useReceiptExport(filename);
 
   const handleEndSession = async () => {
     try {
@@ -67,7 +66,8 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
     >
       {/* Receipt card */}
       <div
-        className="rounded-2xl p-6"
+        ref={receiptRef}
+        className="rounded-2xl p-6 receipt-card"
         style={{ background: "var(--card)" }}
       >
         {/* Header */}
@@ -76,13 +76,13 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
             className="text-2xl font-black tracking-widest uppercase"
             style={{ color: "var(--brand)" }}
           >
-            {receipt?.data.session_name || "The Shopping List"}
+            {session.title || "The Shopping List"}
           </h1>
           <p className="text-xs mt-2 uppercase tracking-widest" style={{ color: "var(--muted)" }}>
             Session ID: {token.slice(0, 16).toUpperCase()}
           </p>
           <p className="text-xs uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-            Date: {receipt?.data.session_date ? formatLocaleData(receipt.data.session_date) : ""}
+            Date: {session.created_at ? formatLocaleData(session.created_at) : ""}
           </p>
         </div>
 
@@ -182,10 +182,14 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
 
       <div className="flex gap-2">
         <div className="size-14">
-          <ReceiptPDF
-            session={session ?? { id: token, title: "", created_at: "", last_active: "" }}
-            items={receipt?.data.items || []}
-          />
+          <button
+            onClick={exportToPDF}
+            disabled={isExporting || loading}
+            className="w-full py-4 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition disabled:opacity-60"
+            style={{ background: "var(--card)", color: "var(--foreground)" }}
+          >
+            {loading ? <ReloadIcon fill="#065f46" />: <DownloadIcon fill="#065f46" /> }
+          </button>
         </div>
         <button
           onClick={handleEndSession}
