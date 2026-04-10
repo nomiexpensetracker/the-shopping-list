@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import type { Item } from "@/types/dao";
-import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
+
 import QuantityEditor from "./quantity-editor";
 import { CloseIcon } from "./icons";
 

@@ -7,8 +7,9 @@ import useSWR from "swr";
 import { use, useMemo, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
-import type { Item, Summary } from "@/types/dao";
+import type { Item, Summary, SyncDataType } from "@/types/dao";
 
+import Header from "@/components/Header";
 import ItemCard from "@/components/ItemCard";
 import MobileGate from "@/components/MobileGate";
 import InviteModal from "@/components/InviteModal";
@@ -16,12 +17,10 @@ import CollectModal from "@/components/CollectModal";
 import EditItemModal from "@/components/EditItemModal";
 import UpdateSessionModal from "@/components/UpdateSessionModal";
 import ParticipantToast from "@/components/ParticipantToast";
-import ParticipantAvatars from "@/components/ParticipantAvatars";
-import { AddIcon, CartIcon, ShareIcon } from "@/components/icons";
+import { AddIcon, CartIcon } from "@/components/icons";
 
 import { formatRupiah } from "@/lib/utils";
 import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
-import ThemeToggle from "@/components/ThemeToggle";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -35,7 +34,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   const [collectTarget, setCollectTarget] = useState<Item | null>(null);
   const [editTarget, setEditTarget] = useState<Item | null | "new">(null);
   const [showInvite, setShowInvite] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "error">("idle");
+  const [syncStatus, setSyncStatus] = useState<SyncDataType>("idle");
 
   // fetch session details, including participants 
   const { data: session, error: sessError } = useSWR<CommonResponse<GetSessionDetailResponse>>(
@@ -211,54 +210,17 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
     setSyncStatus("idle");
   }
 
+  const handleToggleInvitation = () => setShowInvite((prev) => !prev);
+
   return (
     <MobileGate>
       {/* noindex for private session */}
       <meta name="robots" content="noindex,nofollow" />
 
       {/* Header */}
-      <header
-        className="sticky top-0 z-10 h-20 flex items-center justify-between px-4 py-3"
-        style={{
-          background: "var(--main-bg)",
-          borderBottom: "1px solid var(--border)",
-        }}
-      >
-        <div className="max-w-[60%] flex flex-col">
-          <h1
-            className="text-xl font-extrabold truncate"
-            style={{ color: "var(--brand)" }}
-          >
-            {session?.data.title || "Shopping List"}
-          </h1>
-          {syncStatus !== 'idle' && (
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
-              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
-                {syncStatus === 'syncing' ? 'Syncing' : 'Sync Error'}
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Participant avatars */}
-          <ParticipantAvatars participants={session?.data.participants ?? []} />
-
-          {/* Invite */}
-          <button
-            onClick={() => setShowInvite(true)}
-            aria-label="Invite collaborators"
-            className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ color: "var(--brand)" }}
-          >
-            <ShareIcon fill="var(--foreground)" />
-          </button>
-
-          {/* Theme toggle */}
-          <ThemeToggle />
-        </div>
-      </header>
+      {session && session.data && (
+        <Header session={session.data} syncStatus={syncStatus} handleToggleInvitation={handleToggleInvitation} />
+      )}
 
       <main
         className="flex flex-col relative px-4 py-6 gap-6"
@@ -268,7 +230,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       >
         {/* Stats bar */}
         {activeItems.length > 0 && (
-          <div className="w-full grid grid-cols-[30%_67%] justify-between" style={{ background: "var(--main-bg)" }}>
+          <div className="w-full grid grid-cols-[30%_67%] justify-between">
             <div
               className="flex-1 rounded-2xl p-4 flex flex-col items-start justify-center"
               style={{ background: "var(--card)" }}
@@ -281,18 +243,20 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
               </p>
             </div>
             <div
-              className="flex-1 rounded-2xl p-4 flex flex-col items-start justify-center"
+              className="flex-1 rounded-2xl p-4 flex flex-col gap-2 items-start justify-center"
               style={{ background: "var(--collected-bg)" }}
             >
               <p className="text-sm uppercase font-bold tracking-widest" style={{ color: "var(--muted)" }}>
                 Colected - <span style={{ color: "var(--collected-text)" }}>{summary?.data?.collected_items_count ?? collectedItems.length}</span>
               </p>
-              <p className="text-sm uppercase font-bold tracking-widest" style={{ color: "var(--muted)" }}>
-                Total Price
-              </p>
-              <p className="text-2xl uppercase font-extrabold tracking-widest" style={{ color: "var(--collected-text)" }}>
-                {formatRupiah(parseInt(summary?.data?.collected_items_total_price ?? String(predictedTotal)))}
-              </p>
+              <div className="flex flex-col items-start justify-center">
+                <p className="text-sm uppercase font-bold tracking-widest" style={{ color: "var(--muted)" }}>
+                  Total Price
+                </p>
+                <p className="text-2xl uppercase font-extrabold tracking-widest" style={{ color: "var(--collected-text)" }}>
+                  {formatRupiah(parseInt(summary?.data?.collected_items_total_price ?? String(predictedTotal)))}
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -362,11 +326,11 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           <button
             id="fab-cart-action-button"
             aria-label="Add item with details"
-            className="fixed bottom-22 right-6 size-14 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow"
+            className="fixed bottom-22 right-6 size-14 rounded-full flex items-center justify-center text-2xl font-bold shadow"
             style={{ background: "var(--brand-light)" }}
             onClick={() => router.push(`/session/${token}/receipt`)}
           >
-            <CartIcon fill="var(--brand)" />
+            <CartIcon fill="var(--brand-dark)" />
           </button>
         )}
         <button
@@ -408,7 +372,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       )}
 
       {showInvite && (
-        <InviteModal sessionId={token} onClose={() => setShowInvite(false)} />
+        <InviteModal sessionId={token} onClose={handleToggleInvitation} />
       )}
 
       {showUpdateModal && session?.data && (

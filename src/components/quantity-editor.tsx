@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Image from 'next/image'
+
 import { AddIcon, RemoveIcon } from './icons';
 
 interface QuantityEditorProps {
@@ -18,7 +18,7 @@ const QuantityEditor: React.FC<QuantityEditorProps> = ({ qty, setQty }) => {
       >
         Collected Qty
       </label>
-      <div className="flex items-center gap-4 p-2 rounded-xl" style={{ background: "var(--quantity-bg)" }}>
+      <div className="flex items-center gap-4 p-2 rounded-xl" style={{ background: "var(--background)" }}>
         <div className='size-14'>
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}

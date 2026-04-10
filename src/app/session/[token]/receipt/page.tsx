@@ -205,9 +205,9 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
           onClick={() => router.back()}
           disabled={loading}
           className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center"
-          style={{ background: "var(--background)", color: "var(--foreground)" }}
+          style={{ background: "var(--card)" }}
         >
-          <CloseIcon fill="var(--foreground)" />
+          <CloseIcon fill="var(--brand-dark)" />
         </button>
         <button
           onClick={handleEndSession}

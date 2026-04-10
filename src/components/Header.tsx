@@ -1,0 +1,62 @@
+import React from 'react'
+
+import { SyncDataType } from '@/types/dao';
+import { GetSessionDetailResponse } from '@/types/dto';
+import ParticipantAvatars from './ParticipantAvatars';
+import { ShareIcon } from './icons';
+import ThemeToggle from './ThemeToggle';
+
+interface HeaderProps {
+  session: GetSessionDetailResponse;
+  syncStatus: SyncDataType;
+  handleToggleInvitation: VoidFunction;
+}
+
+const Header: React.FC<HeaderProps> = ({ session, syncStatus, handleToggleInvitation }) => {
+  return (
+    <header
+      className="sticky top-0 z-10 h-20 flex items-center justify-between px-4 py-3"
+      style={{
+        background: "var(--main-bg)",
+        borderBottom: "1px solid var(--border)",
+      }}
+    >
+      <div className="max-w-[60%] flex flex-col">
+        <h1
+          className="text-xl font-extrabold truncate"
+          style={{ color: "var(--brand)" }}
+        >
+          {session.title || "Shopping List"}
+        </h1>
+        {syncStatus !== 'idle' && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
+              {syncStatus === 'syncing' ? 'Syncing' : 'Sync Error'}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        {/* Participant avatars */}
+        <ParticipantAvatars participants={session.participants ?? []} />
+
+        {/* Invite */}
+        <button
+          onClick={handleToggleInvitation}
+          aria-label="Invite collaborators"
+          className="w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ color: "var(--brand)" }}
+        >
+          <ShareIcon fill="var(--foreground)" />
+        </button>
+
+        {/* Theme toggle */}
+        <ThemeToggle />
+      </div>
+    </header>
+  )
+}
+
+export default Header

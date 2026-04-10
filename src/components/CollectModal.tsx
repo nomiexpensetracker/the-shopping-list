@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import type { Item } from "@/types/dao";
 
 import QuantityEditor from "./quantity-editor";
-import Image from "next/image";
 import { CloseIcon } from "./icons";
 
 interface Props {

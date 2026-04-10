@@ -1,4 +1,5 @@
 export type ItemState = "active" | "deleted" | "restored" | "collected" ;
+export type SyncDataType = "idle" | "syncing" | "error"
 export type ActivityType = "created" | "updated" | "deleted" | "restored" | "collected";
 export type ParticipantRole = "host" | "participant";
 
