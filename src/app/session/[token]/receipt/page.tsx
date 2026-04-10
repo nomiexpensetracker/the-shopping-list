@@ -18,8 +18,8 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
   const router = useRouter();
 
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
   const [showQR, setShowQR] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [qrValue, setQrValue] = useState(process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app')
 
   const { data: receipt } = useSWR<CommonResponse<Receipt>>(`/api/sessions/${token}/receipt`, fetcher, {
@@ -201,23 +201,13 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
       )}
 
       <div className="flex gap-2">
-        <div className="size-14">
-          <button
-            onClick={exportToPDF}
-            disabled={isExporting || loading}
-            className="w-full py-4 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition disabled:opacity-60"
-            style={{ background: "var(--card)", color: "var(--foreground)" }}
-          >
-            {loading ? <ReloadIcon fill="#065f46" />: <DownloadIcon fill="#065f46" /> }
-          </button>
-        </div>
         <button
           onClick={handleEndSession}
-          disabled={loading}
+          disabled={isExporting || loading}
           className="flex-1 h-14 flex items-center justify-center rounded-xl text-white font-semibold text-lg transition disabled:opacity-50"
           style={{ background: "var(--brand)" }}
         >
-          End Session
+          {loading ? <ReloadIcon fill="#065f46" />: <DownloadIcon fill="#065f46" /> }{" "}Download Receipt &amp; End Session
         </button>
       </div>
     </main>
