@@ -21,6 +21,7 @@ export async function GET(
       SELECT
         s.id AS session_id,
         s.title AS session_name,
+        s.list_id,
         s.created_at::date AS session_date,
         to_char(s.created_at, 'HH12:MI AM') AS session_time,
   
@@ -62,6 +63,21 @@ export async function GET(
           WHERE i.session_id = s.id
             AND i.state = 'collected'
         ) AS items,
+
+        -- uncollected (active) items — still on the list
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', i.id,
+              'name', i.name,
+              'quantity', i.quantity
+            )
+            ORDER BY i.created_at
+          )
+          FROM items i
+          WHERE i.session_id = s.id
+            AND i.state = 'active'
+        ) AS uncollected_items,
   
         -- total price (qty * price)
         (

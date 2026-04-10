@@ -22,6 +22,7 @@ export async function GET(
       sessions.title, 
       sessions.created_at, 
       sessions.last_active,
+      sessions.list_id,
       json_agg(
         json_build_object(
           'id', session_participants.id,
@@ -33,7 +34,7 @@ export async function GET(
     FROM sessions
     LEFT JOIN session_participants ON sessions.id = session_participants.session_id
     WHERE sessions.id = ${token}
-    GROUP BY sessions.id, sessions.title, sessions.created_at, sessions.last_active
+    GROUP BY sessions.id, sessions.title, sessions.created_at, sessions.last_active, sessions.list_id
   `;
 
   if (rows.length === 0) {
@@ -85,20 +86,46 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid session token", success: false, status: 400 });
   }
 
+  // Check whether this session was spawned from a list
+  const [sessionRow] = await sql`SELECT list_id FROM sessions WHERE id = ${token}`;
+  if (!sessionRow) {
+    return NextResponse.json({ error: "Session not found", success: false }, { status: 404 });
+  }
+
+  const listId = sessionRow.list_id as string | null;
+  const db = getClient();
+
+  if (listId) {
+    // List-linked session: skip template creation — the list already preserves all items.
+    try {
+      await db.transaction([
+        db`DELETE FROM items WHERE session_id = ${token}`,
+        db`DELETE FROM sessions WHERE id = ${token}`,
+      ]);
+      return NextResponse.json({ data: { listId }, success: true, status: 200 });
+    } catch (err) {
+      console.error("[DELETE /api/sessions/:token] list-linked delete failed:", err);
+      return NextResponse.json(
+        { error: "Failed to delete session", success: false },
+        { status: 500 }
+      );
+    }
+  }
+
+  // Quick Shop session (no list): create a template blueprint for the next trip QR code.
   const templateId = generateTemplateId();
-  const sql = getClient();
 
   try {
-    await sql.transaction([
+    await db.transaction([
       // 1. Insert template (name derived from session title)
-      sql`
+      db`
         INSERT INTO templates (id, name, expires_at)
         SELECT ${templateId}, title, NOW() + INTERVAL '30 days'
         FROM sessions
         WHERE id = ${token}
       `,
       // 2. Insert template_items from non-deleted session items
-      sql`
+      db`
         INSERT INTO template_items (template_id, name, quantity)
         SELECT ${templateId}, name, quantity
         FROM items
@@ -106,13 +133,9 @@ export async function DELETE(
           AND state != 'deleted'
       `,
       // 3. Delete session items
-      sql`
-        DELETE FROM items WHERE session_id = ${token}
-      `,
+      db`DELETE FROM items WHERE session_id = ${token}`,
       // 4. Delete session
-      sql`
-        DELETE FROM sessions WHERE id = ${token}
-      `,
+      db`DELETE FROM sessions WHERE id = ${token}`,
     ]);
 
     return NextResponse.json({ data: { templateId }, success: true, status: 200 });

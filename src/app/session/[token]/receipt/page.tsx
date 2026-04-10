@@ -42,17 +42,27 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
     try {
       setLoading(true);
 
-      // 1. Delete session and retrieve templateId
+      // 1. Delete session — returns { templateId } for Quick Shop or { listId } for list-linked sessions
       const res = await fetch(`/api/sessions/${token}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
 
-      const data = await res.json() as CommonResponse<{ templateId: string }>;
+      const data = await res.json() as CommonResponse<{ templateId?: string; listId?: string }>;
 
-      // 2. Set QR value with templateId, then reveal QR code
+      if (data.data?.listId) {
+        // List-linked session: auto-download receipt then go back to the list
+        await exportToPDF();
+        localStorage.removeItem(`participant_${token}_id`);
+        localStorage.removeItem(`participant_${token}_name`);
+        localStorage.removeItem(`participant_${token}_color`);
+        router.replace(`/list/${data.data.listId}`);
+        return;
+      }
+
+      // Quick Shop session: show QR template code as before
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app';
-      setQrValue(`${baseUrl}/template/${data.data.templateId}`);
+      setQrValue(`${baseUrl}/template/${data.data?.templateId}`);
       setShowQR(true);
 
       // 3. Wait for QR code to mount in the DOM
@@ -173,7 +183,39 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
           </span>
         </div>
 
-        {/* QR CODE Section — revealed on End Session */}
+        {/* Uncollected items — only shown for list-linked sessions */}
+        {receipt?.data.list_id && (receipt?.data.uncollected_items ?? []).length > 0 && (
+          <div className="mb-4">
+            <p
+              className="font-extrabold text-xs text-center uppercase tracking-widest mb-3"
+              style={{ color: "var(--muted)", borderTop: "1px dashed var(--border)", paddingTop: "12px" }}
+            >
+              Items still on your list
+            </p>
+            <p className="text-xs text-center mb-3" style={{ color: "var(--muted)" }}>
+              These weren&apos;t available this trip — they remain on your list for next time.
+            </p>
+            {(receipt.data.uncollected_items ?? []).map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-3 py-2"
+                style={{ borderBottom: "1px solid var(--border)" }}
+              >
+                <span
+                  className="text-sm font-semibold w-8 shrink-0"
+                  style={{ color: "var(--muted)" }}
+                >
+                  {item.quantity}
+                </span>
+                <span className="text-sm font-semibold" style={{ color: "var(--muted)" }}>
+                  {item.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* QR CODE Section — revealed on End Session (Quick Shop only) */}
         {showQR && (
           <div className="flex flex-col gap-2">
             <p className="text-xs text-center font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--foreground)" }}>

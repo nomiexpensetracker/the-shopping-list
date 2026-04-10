@@ -30,14 +30,18 @@ classification:
 # Product Requirements Document - the-shopping-list-bmad
 
 **Author:** Dian  
-**Date:** 2026-04-01
+**Date:** 2026-04-01  
+**Last Updated:** 2026-04-10 — List-first architecture (Phase 2 feature)
 
 ## Executive Summary
 
 Build a mobile-screen-only web app for anonymous group shopping that prevents two common in-store failures: (1) duplicated items when people split up and coordinate via screenshots, and (2) budget surprises at checkout. The product enables a group to share a shopping list, collaborate while physically separated in the store, and stay aligned on both what to buy and what it will cost before reaching the cashier.
 
+As of Phase 2, the app is **list-first**: users maintain persistent personal shopping lists that survive across shopping trips. A collaborative shopping session is an opt-in add-on spawned from a list. When a trip ends and some items were unavailable in-store, they automatically remain on the list ready for the next trip — no manual recovery needed.
+
 ### What Makes This Special
 
+- **Persistent personal lists**: a named list lives on the user's device (via URL token) and carries over across shopping trips — no items are ever lost to a session expiry.
 - Total price prediction: users enter item prices while shopping to maintain a running estimated total, giving the group a tactical budget radar to adjust in real time (before checkout).
 - Anonymous collaboration: no accounts required; the core workflow is optimized for quick, situational group use (e.g., friends/household shopping trips).
 - Lightweight sync: semi real-time updates (auto-refresh ~every 30 seconds) keep collaborators aligned without requiring live real-time infrastructure.
@@ -84,21 +88,46 @@ Build a mobile-screen-only web app for anonymous group shopping that prevents tw
 
 ### MVP - Minimum Viable Product
 
-- Group shopping session
+- **Persistent personal lists** — named, multi-list, device-local (URL-as-identity)
+- **List item management** — add, edit, soft-delete; items survive indefinitely
+- **Session spawned from list** — active list items copied into session at start; list is unchanged during and after the session
+- **Quick Shop** — create a one-off session without a list (preserved for fast/ad-hoc use)
+- Group shopping session with collaborative shared list
 - QR code generator (join/share session)
-- Shopping list CRUD
+- Shopping list CRUD (in-session)
 - PDF generator (digital receipt export)
+- Receipt shows uncollected items with note that they remain on the list
 - Light & dark mode
 
 ### Growth Features (Post-MVP)
 
-- TBD
+- Per-item collected history on list ("last collected on [date]", populated from past sessions)
+- List sharing / cross-device transfer without accounts
+- Item frequency/reorder suggestions based on session history
 
 ### Vision (Future)
 
 - TBD
 
 ## User Journeys
+
+### Journey 0 - List-First Path: Plan Before You Go
+
+Persona: Sari, 34, weekly grocery shopper who always forgets something.
+
+Opening scene: Sari builds her grocery list throughout the week on her phone. On shopping day, she wants to start a shared session with her partner.
+
+Rising action:
+1. Sari opens the app and sees "My Lists" on the home screen.
+2. She taps her existing "Weekly Groceries" list — 12 items ready.
+3. She taps "Start Shopping", enters her name, and a session is created with all 12 items pre-loaded.
+4. She shares the session link with her partner who joins.
+5. They split across aisles and collect items.
+6. The store is out of oat milk — neither of them marks it collected.
+
+Climax: Session ends. The receipt shows 11 collected items and a note: "1 item still on your list." Sari and her partner finish with a clear digital receipt.
+
+Resolution: Sari goes back to her "Weekly Groceries" list — oat milk is still there for next week. She didn't have to re-type it.
 
 ### Journey 1 - Primary User Success Path: Fast Tactical Group Shop
 
@@ -107,16 +136,17 @@ Persona: Maya, 27, shopping with two friends before a weekend gathering.
 Opening scene: The group usually shares screenshots and ends up with duplicate items and budget surprises.
 
 Rising action:
-1. Maya creates a shopping session on mobile.
-2. She shares access via QR code and shared link.
-3. Teammates join anonymously and see the same list.
-4. They split across aisles. Items begin in added state.
-5. When someone picks an item, they mark it collected (item is struck through).
-6. Price is optionally entered at collection time (or skipped if tag not visible).
+1. Maya opens the app, creates a new named list "Party Supplies", and adds items.
+2. She taps "Start Shopping", enters her name, and the session is created with all items pre-loaded.
+3. She shares access via QR code and shared link.
+4. Teammates join anonymously and see the same list.
+5. They split across aisles. Items begin in active state.
+6. When someone picks an item, they mark it collected (item is struck through).
+7. Price is optionally entered at collection time (or skipped if tag not visible).
 
 Climax: The group sees collected progress and running totals from entered prices, preventing duplicated pickups and late budget shocks.
 
-Resolution: They finish with a digital receipt view containing who contributed what, item qty/name/price, and total.
+Resolution: They finish with a digital receipt view containing who contributed what, item qty/name/price, and total. The "Party Supplies" list is preserved for future reference.
 
 ### Journey 2 - Primary User Edge Case: Conflicting Edits on the Same Item
 
@@ -165,11 +195,23 @@ Resolution: Users keep trust in the workflow even with optional pricing.
 
 ### Journey Requirements Summary
 
+- **Persistent personal lists**
+  - Named lists created from the home screen, stored by URL token
+  - Multiple lists per device, managed via localStorage registry
+  - List items: add, edit, soft-delete; items survive sessions
+  - "Copy list link" CTA — URL is the identity; users must bookmark to access from other devices
+  - "Add to My Lists" banner when a list URL is opened on a device without the list in localStorage
+- Session spawned from list
+  - "Start Shopping" on a list copies all active items into a new session
+  - Session carries `list_id` FK so the relationship is preserved
+  - List is unchanged during and after the session
 - Anonymous session collaboration
   - Session creation and join via QR code and shared link
   - Multi-user shared list without login
-- List state model
-  - Item states: added, collected, deleted
+- Quick Shop path (preserved)
+  - Create a one-off session without a list from the home screen
+- Session item state model
+  - Item states: active, collected, deleted
   - Visual collected indication (strikethrough)
 - Collection + pricing workflow
   - Optional price entry when marking collected
@@ -183,6 +225,9 @@ Resolution: Users keep trust in the workflow even with optional pricing.
   - Contributor-based item attribution
   - Item fields: qty, name, price
   - Session total
+  - "Items still on your list" section showing uncollected items, with note they remain on the list
+  - For list-linked sessions: redirect to the list after session ends
+  - For Quick Shop sessions: show QR template code for next-trip restart (existing behavior)
 - Sync model
   - Polling-based refresh around 30s with predictable consistency semantics
 
@@ -194,8 +239,11 @@ This product is a Single Page Application (SPA) optimized for mobile-screen usag
 
 ### Technical Architecture Considerations
 
-- Application model: SPA with client-side routing and session-centric navigation.
-- Real-time strategy: polling-based synchronization every 30 seconds for shared list state and predicted totals.
+- Application model: SPA with client-side routing; **list-first navigation** (home → list → session).
+- **List identity model**: URL-as-identity. The CUID2 list token is the sole identifier. Lists are registered in `localStorage` (`lists_registry`) on the creating device. Multi-device access requires the user to share/bookmark the URL.
+- **Session ↔ list relationship**: sessions carry a nullable `list_id` FK. `NULL` = Quick Shop. A list-linked session copies active list items at creation; the list row is never mutated by session activity.
+- **Template deprecation**: the `templates`/`template_items` tables and `GET /api/templates/[token]` route are kept alive for backward compatibility with issued QR codes (30-day expiry). No new template-creation flows. New functionality uses lists.
+- Real-time strategy: polling-based synchronization every 30 seconds for shared session state and predicted totals. No polling on the list page (personal/single-user).
 - Cross-browser support: broad modern browser compatibility, with graceful degradation where needed.
 - Mobile-only gating behavior: non-mobile viewports must render a clear mobile only app screen and prevent normal app interaction.
 - State consistency: deterministic conflict resolution for near-simultaneous edits on shared items.
@@ -282,14 +330,19 @@ The first release should establish a durable product foundation: reliable anonym
 
 **Must-Have Capabilities:**
 
+- **Persistent personal lists** (named, multi-list, device-local via URL token)
+- **List item management** (add, edit, soft-delete, rename list)
+- **Session spawned from list** (all active items copied into session; list unchanged)
+- **Quick Shop** (one-off session without a list)
 - Session creation + anonymous join via QR/link
 - Shared list collaboration
-- Item lifecycle states: added, collected, deleted
+- Session item lifecycle states: active, collected, deleted
 - Optional price input at collect-time
 - Running total prediction
 - Conflict handling for near-simultaneous edits
-- Digital receipt page with contributor/item breakdown
+- Digital receipt page with contributor/item breakdown and uncollected-items section
 - PDF export
+- Post-session redirect to list (for list-linked sessions)
 - Mobile-only app gate behavior on tablet/desktop
 - Light/dark mode
 
@@ -319,9 +372,27 @@ The first release should establish a durable product foundation: reliable anonym
 
 ## Functional Requirements
 
+### Personal List Management (new)
+
+- FR0a: A user can create a named personal shopping list from the home screen.
+- FR0b: A user can maintain multiple named lists on a single device.
+- FR0c: The system can store a user's list registry in localStorage, keyed by list token.
+- FR0d: A user can add items to a personal list with name and quantity.
+- FR0e: A user can edit items on a personal list (name and quantity).
+- FR0f: A user can soft-delete items from a personal list.
+- FR0g: A user can rename a personal list.
+- FR0h: The system can persist a personal list indefinitely (no expiry, or 1-year idle cleanup).
+- FR0i: A user can copy the list URL to share or bookmark it for multi-device access.
+- FR0j: The system can show an "Add to My Lists" prompt when a list URL is opened on a device without that list in localStorage.
+- FR0k: A user can spawn a collaborative shopping session from a list.
+- FR0l: The system shall copy all active list items into the spawned session at session creation time (items are not moved; the list is unchanged).
+- FR0m: The system shall record the `list_id` on the session so the relationship is preserved.
+- FR0n: After a session ends, the system shall redirect the user back to the originating list (for list-linked sessions).
+- FR0o: The session receipt shall display uncollected items with a note that they remain on the list.
+
 ### Session & Access Management
 
-- FR1: A shopper can create a new anonymous shopping session from a mobile device.
+- FR1: A shopper can create a new anonymous shopping session from a mobile device (Quick Shop — no list required).
 - FR2: A shopper can join an existing session using a shared link.
 - FR3: A shopper can join an existing session by scanning a QR code.
 - FR4: The system can restrict full app usage to mobile screen contexts.
@@ -334,7 +405,7 @@ The first release should establish a durable product foundation: reliable anonym
 - FR8: A shopper can remove list items from a shared shopping session.
 - FR9: A shopper can mark an item as collected.
 - FR10: A shopper can return an item from collected to added.
-- FR11: The system can represent item lifecycle states as added, collected, and deleted.
+- FR11: The system can represent session item lifecycle states as active, collected, and deleted.
 - FR12: The system can show collected items with a distinct completed state indicator.
 - FR13: The system can synchronize shared list state across session participants.
 
@@ -396,7 +467,8 @@ The first release should establish a durable product foundation: reliable anonym
 
 - The system shall encrypt all client-server traffic in transit using HTTPS/TLS.
 - The system shall issue unguessable session identifiers and join links resistant to enumeration.
-- The system shall prevent indexing of private session data by search engines.
+- The system shall issue unguessable list identifiers resistant to enumeration.
+- The system shall prevent indexing of private session and list data by search engines.
 - The system shall validate all user-submitted input fields including item names, quantities, and prices.
 - The system shall require a valid session join artifact (QR/link token) before granting session access.
 

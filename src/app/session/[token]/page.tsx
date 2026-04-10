@@ -223,7 +223,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       )}
 
       <main
-        className="flex flex-col relative px-4 py-6 gap-6"
+        className="min-h-dvh flex flex-col relative px-4 py-6 gap-6"
         style={{
           background: "var(--background)",
         }}

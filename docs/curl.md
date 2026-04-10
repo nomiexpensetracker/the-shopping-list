@@ -8,6 +8,7 @@ Use Postman variables `{{BASE_URL}}`, `{{TOKEN}}`, `{{ITEM_ID}}`, `{{PARTICIPANT
 | `TOKEN` | *(session ID returned from POST /api/sessions)* |
 | `ITEM_ID` | *(item `id` returned from POST /api/sessions/[token]/items)* |
 | `PARTICIPANT_ID` | *(participant `id` returned from POST /api/sessions or /participants)* |
+| `TEMPLATE_ID` | *(template `id` returned from DELETE /api/sessions/[token])* |
 
 ---
 
@@ -29,7 +30,16 @@ curl -X GET '{{BASE_URL}}/api/sessions/{{TOKEN}}' \
   -H 'Content-Type: application/json'
 ```
 
-**DELETE /api/sessions/[token]** — Delete a session
+**PATCH /api/sessions/[token]** — Update session title
+```bash
+curl -X PATCH '{{BASE_URL}}/api/sessions/{{TOKEN}}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "Updated Groceries"
+  }'
+```
+
+**DELETE /api/sessions/[token]** — Delete a session (archives items as a template; returns `templateId`)
 ```bash
 curl -X DELETE '{{BASE_URL}}/api/sessions/{{TOKEN}}'
 ```
@@ -64,7 +74,8 @@ curl -X POST '{{BASE_URL}}/api/sessions/{{TOKEN}}/items' \
   -d '{
     "name": "Milk",
     "quantity": 2,
-    "description": "Full fat"
+    "description": "Full fat",
+    "created_by": "{{PARTICIPANT_ID}}"
   }'
 ```
 
@@ -78,10 +89,12 @@ curl -X PATCH '{{BASE_URL}}/api/sessions/{{TOKEN}}/items/{{ITEM_ID}}' \
     "description": "Full fat",
     "price": 1.99,
     "state": "collected",
+    "updated_by": "{{PARTICIPANT_ID}}",
+    "collected_by": "{{PARTICIPANT_ID}}",
     "client_edit_at": "2026-04-03T10:00:00.000Z"
   }'
 ```
-> Valid `state` transitions: `added` → `collected`, `collected` → `added`, any → `deleted`.  
+> Valid `state` values: `active`, `collected`, `restored`, `deleted`.  
 > A `409` response with `{ "conflict": true, "item": {...} }` means a later write already exists.
 
 **DELETE /api/sessions/[token]/items/[itemId]** — Soft-delete an item
@@ -140,4 +153,13 @@ curl -X DELETE '{{BASE_URL}}/api/sessions/{{TOKEN}}/participants' \
   -d '{
     "participant_id": "{{PARTICIPANT_ID}}"
   }'
+```
+
+---
+
+## Templates
+
+**GET /api/templates/[token]** — Fetch a template by ID (validates expiry; returns `410` if expired)
+```bash
+curl -X GET '{{BASE_URL}}/api/templates/{{TEMPLATE_ID}}'
 ```

@@ -19,3 +19,13 @@ export function generateSessionParticipantId(): string {
 export function generateTemplateId(): string {
   return createId();
 }
+
+/** Generate a new list id. */
+export function generateListId(): string {
+  return createId();
+}
+
+/** Generate a new list item id. */
+export function generateListItemId(): string {
+  return createId();
+}

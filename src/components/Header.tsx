@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 
 import { SyncDataType } from '@/types/dao';
 import { GetSessionDetailResponse } from '@/types/dto';
@@ -28,6 +29,15 @@ const Header: React.FC<HeaderProps> = ({ session, syncStatus, handleToggleInvita
         >
           {session.title || "Shopping List"}
         </h1>
+        {session.list_id && (
+          <Link
+            href={`/list/${session.list_id}`}
+            className="text-[10px] font-semibold uppercase tracking-widest"
+            style={{ color: "var(--muted)" }}
+          >
+            ← back to list
+          </Link>
+        )}
         {syncStatus !== 'idle' && (
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />

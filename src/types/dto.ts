@@ -26,5 +26,26 @@ export interface GetSessionDetailResponse {
   title: string
   created_at: string
   last_active: string
+  list_id: string | null
   participants: Participant[]
+}
+
+export interface PostListResponse {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface GetListResponse {
+  id: string;
+  name: string;
+  created_at: string;
+  last_active: string;
+  items: import('./dao').ListItem[];
+}
+
+export interface ListRegistryEntry {
+  id: string;
+  name: string;
+  last_active: string;
 }

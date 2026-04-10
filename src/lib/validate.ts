@@ -60,6 +60,11 @@ export function isValidDescription(description: unknown): description is string 
   return typeof description === "string" && description.length <= 500;
 }
 
+/** List name: required, non-empty string, max 60 chars. */
+export function isValidListName(name: unknown): name is string {
+  return typeof name === "string" && name.trim().length > 0 && name.length <= 60;
+}
+
 /** Validate an activity action based on valid action ('created', 'updated', 'deleted', 'restored', 'collected'). */
 export function isValidActivityAction(action: unknown): action is string {
   const validActions = ["created", "updated", "deleted", "restored", "collected"];

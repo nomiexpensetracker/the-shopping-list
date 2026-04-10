@@ -64,9 +64,31 @@ export interface Receipt {
   session_name: string
   session_date: string
   session_time: string
+  list_id: string | null
   participants: Participant[]
   items: Item[]
+  uncollected_items: { id: string; name: string; quantity: number }[] | null
   total_price: string
+}
+
+export type ListItemState = "active" | "deleted";
+
+export interface ListItem {
+  id: string;
+  list_id: string;
+  name: string;
+  quantity: number;
+  state: ListItemState;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface List {
+  id: string;
+  name: string;
+  created_at: string;
+  last_active: string;
+  items: ListItem[];
 }
 
 /** Valid next states from a given current state. */
