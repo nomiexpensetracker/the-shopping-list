@@ -80,13 +80,12 @@ export default function HomePage() {
   return (
     <MobileGate>
       <main className="relative min-h-dvh flex flex-col">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-
         <div
           className="flex-1 flex flex-col justify-center px-6 pt-20 pb-10 bg-center bg-no-repeat bg-cover relative"
         >
+          <div className="absolute top-4 right-4">
+            <ThemeToggle />
+          </div>
           <h1
             className="text-5xl font-black leading-tight tracking-tight mb-2 text-center"
             style={{ color: "var(--foreground)" }}

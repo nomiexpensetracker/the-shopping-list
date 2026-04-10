@@ -20,6 +20,7 @@ CREATE TABLE session_participants (
   id           TEXT        PRIMARY KEY,
   session_id   TEXT        NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
   name         TEXT        NOT NULL,
+  role         TEXT        NOT NULL CHECK (role IN ('host', 'participant')) DEFAULT 'participant',
   color        TEXT        NOT NULL,
   joined_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_active  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -125,7 +126,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION delete_expired_template()
 RETURNS void AS $$
 BEGIN
-  DELETE FROM template
-  WHERE created_at < NOW() - INTERVAL 30 DAY;
+  DELETE FROM templates
+  WHERE created_at < NOW() - INTERVAL '30 DAY';
 END;
 $$ LANGUAGE plpgsql;
