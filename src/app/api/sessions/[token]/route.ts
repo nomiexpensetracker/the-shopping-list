@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql, getClient } from "@/lib/db";
-import { isValidToken } from "@/lib/validate";
+import { isValidToken, isValidSessionTitle } from "@/lib/validate";
 import { generateTemplateId } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +41,37 @@ export async function GET(
   }
 
   return NextResponse.json({ data: rows[0], success: true, status: 200 });
+}
+
+// PATCH /api/sessions/[token] — update session title
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ token: string }> }
+) {
+  const { token } = await params;
+
+  if (!isValidToken(token)) {
+    return NextResponse.json({ error: "Invalid session token" }, { status: 400 });
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { title } = body;
+
+  if (!isValidSessionTitle(title)) {
+    return NextResponse.json({ error: "Invalid session title" }, { status: 400 });
+  }
+
+  await sql`
+    UPDATE sessions SET title = ${(title as string).trim()} WHERE id = ${token}
+  `;
+
+  return NextResponse.json({ success: true });
 }
 
 // DELETE /api/sessions/[token] — archive session as template then delete

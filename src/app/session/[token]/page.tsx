@@ -1,9 +1,11 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import Image from "next/image";
 import useSWR from "swr";
 import { use, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 import type { Item, Summary } from "@/types/dao";
 
@@ -12,6 +14,7 @@ import MobileGate from "@/components/MobileGate";
 import InviteModal from "@/components/InviteModal";
 import CollectModal from "@/components/CollectModal";
 import EditItemModal from "@/components/EditItemModal";
+import UpdateSessionModal from "@/components/UpdateSessionModal";
 import ParticipantToast from "@/components/ParticipantToast";
 import ParticipantAvatars from "@/components/ParticipantAvatars";
 import { AddIcon, CartIcon, ShareIcon } from "@/components/icons";
@@ -25,6 +28,9 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 export default function SessionPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const showUpdateModal = searchParams.get("with-template") === "true";
 
   const [collectTarget, setCollectTarget] = useState<Item | null>(null);
   const [editTarget, setEditTarget] = useState<Item | null | "new">(null);
@@ -405,6 +411,20 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
 
       {showInvite && (
         <InviteModal sessionId={token} onClose={() => setShowInvite(false)} />
+      )}
+
+      {showUpdateModal && session?.data && (
+        <UpdateSessionModal
+          token={token}
+          initialTitle={session.data.title}
+          initialName={localStorage.getItem(`participant_${token}_name`) ?? "Shopper"}
+          onDone={() => {
+            router.replace(pathname, { scroll: false });
+            mutateItems();
+            mutateSummary();
+          }}
+          onClose={() => router.replace(pathname, { scroll: false })}
+        />
       )}
     </MobileGate>
   );

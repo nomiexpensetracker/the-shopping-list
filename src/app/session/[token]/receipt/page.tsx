@@ -52,7 +52,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
 
       // 2. Set QR value with templateId, then reveal QR code
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app';
-      setQrValue(`${baseUrl}/${data.data.templateId}`);
+      setQrValue(`${baseUrl}/template/${data.data.templateId}`);
       setShowQR(true);
 
       // 3. Wait for QR code to mount in the DOM
