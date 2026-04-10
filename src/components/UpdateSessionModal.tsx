@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+
+import { CloseIcon } from "./icons";
 
 interface Props {
   token: string;
@@ -163,11 +164,10 @@ export default function UpdateSessionModal({ token, initialTitle, initialName, o
           <button
             onClick={onClose}
             disabled={loading}
-            aria-label="Close"
-            className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center disabled:opacity-60"
+            className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center"
             style={{ background: "var(--background)", color: "var(--foreground)" }}
           >
-            <Image src="/icons/close.svg" alt="Close" width={24} height={24} />
+            <CloseIcon fill="var(--foreground)" />
           </button>
           <button
             onClick={handleUpdate}

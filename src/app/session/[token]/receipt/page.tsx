@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { use, useMemo, useState } from "react";
 
 import QRCode from "@/components/QRCode";
+import { CloseIcon } from "@/components/icons";
 import { CommonResponse } from "@/types/dto";
 import { useReceiptExport } from "@/lib/hooks";
 import type { Receipt, Session } from "@/types/dao";
-import { DownloadIcon, ReloadIcon } from "@/components/icons";
 import { formatLocaleData, formatRupiah } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -172,7 +172,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
             {receipt?.data.total_price ? `${formatRupiah(parseInt(receipt.data.total_price))}` : "—"}
           </span>
         </div>
-        
+
         {/* QR CODE Section — revealed on End Session */}
         {showQR && (
           <div className="flex flex-col gap-2">
@@ -202,12 +202,20 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
 
       <div className="flex gap-2">
         <button
+          onClick={() => router.back()}
+          disabled={loading}
+          className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center"
+          style={{ background: "var(--background)", color: "var(--foreground)" }}
+        >
+          <CloseIcon fill="var(--foreground)" />
+        </button>
+        <button
           onClick={handleEndSession}
           disabled={isExporting || loading}
-          className="flex-1 h-14 flex items-center justify-center rounded-xl text-white font-semibold text-lg transition disabled:opacity-50"
+          className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 transition disabled:opacity-60"
           style={{ background: "var(--brand)" }}
         >
-          {loading ? <ReloadIcon fill="#065f46" />: <DownloadIcon fill="#065f46" /> }{" "}Download Receipt &amp; End Session
+          {loading ? "Ending Session…" : "Download Receipt & End Session"}
         </button>
       </div>
     </main>
