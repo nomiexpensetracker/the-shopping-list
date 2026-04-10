@@ -19,6 +19,8 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
 
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showQR, setShowQR] = useState(false)
+  const [qrValue, setQrValue] = useState(process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app')
 
   const { data: receipt } = useSWR<CommonResponse<Receipt>>(`/api/sessions/${token}/receipt`, fetcher, {
     revalidateOnFocus: false,
@@ -39,13 +41,26 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
   const handleEndSession = async () => {
     try {
       setLoading(true);
+
+      // 1. Delete session and retrieve templateId
       const res = await fetch(`/api/sessions/${token}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
 
-      const data = await res.json() as CommonResponse<undefined>;
-      // simply redirect to root page upon succesfull deletion
+      const data = await res.json() as CommonResponse<{ templateId: string }>;
+
+      // 2. Set QR value with templateId, then reveal QR code
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app';
+      setQrValue(`${baseUrl}/${data.data.templateId}`);
+      setShowQR(true);
+
+      // 3. Wait for QR code to mount in the DOM
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // 4. Auto-download the receipt with QR code included
+      await exportToPDF();
+
       if (data.success) {
         localStorage.removeItem(`participant_${token}_id`);
         localStorage.removeItem(`participant_${token}_name`);
@@ -54,7 +69,6 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
       }
     } catch (error) {
       setError(`Oops something went wrong. Please try again. ${error}`);
-    } finally {
       setLoading(false);
     }
   }
@@ -159,21 +173,27 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
           </span>
         </div>
         
-        <div className="flex flex-col gap-2">
-          <p className="text-xs text-center font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--foreground)" }}>
-            Thank you for shopping!
-          </p>
+        {/* QR CODE Section — revealed on End Session */}
+        {showQR && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-center font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--foreground)" }}>
+              Thank you for shopping with <span className="ml-1" style={{ color: "var(--brand)" }}> The Shopping List!</span>
+            </p>
+            <p className="text-xs text-center" style={{ color: "var(--muted)" }}>
+              Scan this QR code on your next trip to instantly pre-load all items from this receipt into a new list.
+            </p>
 
-          <div
-            className="p-4 rounded-2xl w-fit mx-auto mt-4"
-            style={{ background: "var(--brand-light)" }}
-          >
-            <QRCode value={process.env.APP_URL || 'https://the-shopping-list-eight.vercel.app'} size={180} />
+            <div
+              className="p-4 rounded-2xl w-fit mx-auto mt-4"
+              style={{ background: "var(--brand-light)" }}
+            >
+              <QRCode value={qrValue} size={180} />
+            </div>
+            <p className="text-xs text-center mb-4" style={{ color: "var(--muted)" }}>
+              Session ID: {token.slice(0, 16).toUpperCase()}
+            </p>
           </div>
-          <p className="text-xs text-center mb-4" style={{ color: "var(--muted)" }}>
-            Session ID: {token.slice(0, 16).toUpperCase()}
-          </p>
-        </div>
+        )}
       </div>
 
       {error && (

@@ -14,3 +14,8 @@ export function generateItemId(): string {
 export function generateSessionParticipantId(): string {
   return createId();
 }
+
+/** Generate a new template id. */
+export function generateTemplateId(): string {
+  return createId();
+}

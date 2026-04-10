@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { sql, getClient } from "@/lib/db";
 import { isValidToken } from "@/lib/validate";
+import { generateTemplateId } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ export async function GET(
   return NextResponse.json({ data: rows[0], success: true, status: 200 });
 }
 
-// DELETE /api/sessions/[token] — delete a session
+// DELETE /api/sessions/[token] — archive session as template then delete
 export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ token: string }> }
@@ -53,9 +54,42 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid session token", success: false, status: 400 });
   }
 
-  await sql`
-    DELETE FROM sessions WHERE id = ${token}
-  `;
+  const templateId = generateTemplateId();
+  const sql = getClient();
 
-  return NextResponse.json({ success: true, status: 200 });
+  try {
+    await sql.transaction([
+      // 1. Insert template (name derived from session title)
+      sql`
+        INSERT INTO templates (id, name, expires_at)
+        SELECT ${templateId}, title, NOW() + INTERVAL '30 days'
+        FROM sessions
+        WHERE id = ${token}
+      `,
+      // 2. Insert template_items from non-deleted session items
+      sql`
+        INSERT INTO template_items (template_id, name, quantity)
+        SELECT ${templateId}, name, quantity
+        FROM items
+        WHERE session_id = ${token}
+          AND state != 'deleted'
+      `,
+      // 3. Delete session items
+      sql`
+        DELETE FROM items WHERE session_id = ${token}
+      `,
+      // 4. Delete session
+      sql`
+        DELETE FROM sessions WHERE id = ${token}
+      `,
+    ]);
+
+    return NextResponse.json({ data: { templateId }, success: true, status: 200 });
+  } catch (err) {
+    console.error("[DELETE /api/sessions/:token] transaction failed:", err);
+    return NextResponse.json(
+      { error: "Failed to delete session", success: false },
+      { status: 500 }
+    );
+  }
 }
