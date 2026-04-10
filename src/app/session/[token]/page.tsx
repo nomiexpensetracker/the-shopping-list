@@ -264,8 +264,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
         className="flex flex-col relative px-4 py-6 gap-6"
         style={{
           background: "var(--background)",
-          height: "calc(100dvh - 80px)",
-          overflow: "hidden",
         }}
       >
         {/* Stats bar */}
