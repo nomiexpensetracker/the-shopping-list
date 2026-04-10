@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
+import { AddIcon, RemoveIcon } from './icons';
 
 interface QuantityEditorProps {
   qty: number;
@@ -23,9 +24,9 @@ const QuantityEditor: React.FC<QuantityEditorProps> = ({ qty, setQty }) => {
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             aria-label="Decrease quantity"
             className="size-full rounded-2xl text-2xl font-bold flex items-center justify-center"
-            style={{ background: "var(--brand-light)", color: "var(--brand)" }}
+            style={{ background: "var(--brand)", color: "#fff" }}
           >
-            <Image src="/icons/remove-minus.svg" alt="Decrease quantity" width={24} height={24} />
+            <RemoveIcon fill="#ffffff" />
           </button>
         </div>
         {focus ? (
@@ -54,7 +55,7 @@ const QuantityEditor: React.FC<QuantityEditorProps> = ({ qty, setQty }) => {
             className="size-full rounded-2xl text-2xl font-bold flex items-center justify-center"
             style={{ background: "var(--brand)", color: "#fff" }}
           >
-            <Image src="/icons/add-plus.svg" alt="Increase quantity" width={24} height={24} />
+            <AddIcon fill="#ffffff" />
           </button>
         </div>
       </div>

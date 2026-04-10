@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import type { Item } from "@/types/dao";
 import Image from "next/image";
 import QuantityEditor from "./quantity-editor";
+import { CloseIcon } from "./icons";
 
 interface Props {
   item: Item | null;  // null = adding new item
@@ -106,7 +107,7 @@ export default function EditItemModal({ item, onDone, onClose }: Props) {
             className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center"
             style={{ background: "var(--background)", color: "var(--foreground)" }}
           >
-            <Image src="/icons/close.svg" alt="Cancel" width={24} height={24} />
+            <CloseIcon fill="var(--foreground)" />
           </button>
           <button
             onClick={handleDone}

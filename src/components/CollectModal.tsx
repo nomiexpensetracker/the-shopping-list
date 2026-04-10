@@ -6,6 +6,7 @@ import type { Item } from "@/types/dao";
 
 import QuantityEditor from "./quantity-editor";
 import Image from "next/image";
+import { CloseIcon } from "./icons";
 
 interface Props {
   item: Item;
@@ -106,14 +107,14 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
             className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center"
             style={{ background: "var(--background)", color: "var(--foreground)" }}
           >
-            <Image src="/icons/close.svg" alt="Cancel" width={24} height={24} />
+            <CloseIcon fill="var(--foreground)" />
           </button>
           <button
             onClick={handleDone}
             className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 transition"
             style={{ background: "var(--brand)" }}
           >
-            Done
+            Mark as Collected
           </button>
         </div>
       </div>
