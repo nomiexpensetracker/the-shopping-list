@@ -97,8 +97,20 @@ export async function DELETE(
 
   if (listId) {
     // List-linked session: skip template creation — the list already preserves all items.
+    // Soft-delete collected items from the list (they were found in-store this trip).
     try {
       await db.transaction([
+        db`
+          UPDATE list_items
+          SET state = 'deleted'
+          WHERE list_id = ${listId}
+            AND state = 'active'
+            AND name IN (
+              SELECT name FROM items
+              WHERE session_id = ${token}
+                AND state = 'collected'
+            )
+        `,
         db`DELETE FROM items WHERE session_id = ${token}`,
         db`DELETE FROM sessions WHERE id = ${token}`,
       ]);

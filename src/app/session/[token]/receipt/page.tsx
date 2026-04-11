@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
-import { use, useMemo, useState } from "react";
+import { use, useCallback, useMemo, useState } from "react";
 
 import QRCode from "@/components/QRCode";
 import { CloseIcon } from "@/components/icons";
@@ -17,10 +17,12 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
   const { token } = use(params);
   const router = useRouter();
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app';
+
   const [error, setError] = useState('')
   const [showQR, setShowQR] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [qrValue, setQrValue] = useState(process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app')
+  const [qrValue, setQrValue] = useState(baseUrl)
 
   const { data: receipt } = useSWR<CommonResponse<Receipt>>(`/api/sessions/${token}/receipt`, fetcher, {
     revalidateOnFocus: false,
@@ -38,6 +40,12 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
   const filename = `digital-receipt-${session.title.toLowerCase().replaceAll(" ", "-") || ""}-${token.slice(0, 16)}.pdf`;
   const { receiptRef, exportToPDF, isExporting } = useReceiptExport(filename);
 
+  const clearParticipantData = useCallback(() => {
+    localStorage.removeItem(`participant_${token}_id`);
+    localStorage.removeItem(`participant_${token}_name`);
+    localStorage.removeItem(`participant_${token}_color`);
+  }, [token]);
+
   const handleEndSession = async () => {
     try {
       setLoading(true);
@@ -51,17 +59,25 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
       const data = await res.json() as CommonResponse<{ templateId?: string; listId?: string }>;
 
       if (data.data?.listId) {
-        // List-linked session: auto-download receipt then go back to the list
+        // List-linked session: show QR linking back to the list, download receipt, then go home
+        setQrValue(`${baseUrl}/list/${data.data.listId}`);
+        setShowQR(true);
+
+        // Wait for QR code to mount in the DOM
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Auto-download the receipt with QR code included
         await exportToPDF();
-        localStorage.removeItem(`participant_${token}_id`);
-        localStorage.removeItem(`participant_${token}_name`);
-        localStorage.removeItem(`participant_${token}_color`);
-        router.replace(`/list/${data.data.listId}`);
+
+        // Clear participant info from localStorage since the session is now fully deleted
+        clearParticipantData();
+
+        // Go back to home after receipt download  
+        router.replace('/');
         return;
       }
 
       // Quick Shop session: show QR template code as before
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app';
       setQrValue(`${baseUrl}/template/${data.data?.templateId}`);
       setShowQR(true);
 
@@ -72,9 +88,8 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
       await exportToPDF();
 
       if (data.success) {
-        localStorage.removeItem(`participant_${token}_id`);
-        localStorage.removeItem(`participant_${token}_name`);
-        localStorage.removeItem(`participant_${token}_color`);
+        // Clear participant info from localStorage since the session is now fully deleted
+        clearParticipantData();
         router.replace('/');
       }
     } catch (error) {

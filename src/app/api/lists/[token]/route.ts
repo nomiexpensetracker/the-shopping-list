@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { sql, getClient } from "@/lib/db";
+
+import { sql } from "@/lib/db";
 import { isValidToken, isValidListName } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
