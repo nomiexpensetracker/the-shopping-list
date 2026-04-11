@@ -20,10 +20,26 @@ export function useHomeModule() {
     myListsState.setMyLists(getListsRegistry());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-resume any in-progress session
+  // Auto-resume any in-progress session — validate it still exists first
   useEffect(() => {
     const sessionId = findActiveSessionId();
-    if (sessionId) router.push("/app/session/" + sessionId);
+    if (!sessionId) return;
+
+    fetch(`/api/sessions/${sessionId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          router.push("/app/session/" + sessionId);
+        } else {
+          // Session no longer exists — clean up stale localStorage keys
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith(`participant_${sessionId}_`))
+            .forEach((k) => localStorage.removeItem(k));
+        }
+      })
+      .catch(() => {
+        // Network error — don't redirect, let the user act manually
+      });
   }, [router]);
 
   async function handleQuickShopSubmit(e: React.FormEvent) {

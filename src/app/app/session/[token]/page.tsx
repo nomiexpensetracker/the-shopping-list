@@ -76,7 +76,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   );
 
   // filter current user out of the participants list to avoid showing their own join toast
-  const currentUserId = localStorage.getItem(`participant_${token}_id`)
+  const currentUserId = typeof window !== "undefined" ? localStorage.getItem(`participant_${token}_id`) : null
   const filteredParticipants = useMemo(() => {
     return session?.data.participants.filter(p => p.id !== currentUserId) ?? [];
   }, [session, currentUserId]);
@@ -96,13 +96,15 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
     mutateSummary();
   }
 
-  // handle start new session
+  // handle start new session — only remove participant keys, not the lists registry
   const handleStartNewSession = () => {
-    localStorage.clear();
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("participant_"))
+      .forEach((k) => localStorage.removeItem(k));
     router.push("/app")
   }
 
-  if (sessError?.status === 404 || (sessError && !session)) {
+  if (sessError || (session && !session.success)) {
     return (
       <div
         className="min-h-dvh flex flex-col items-center justify-center px-6 text-center"
