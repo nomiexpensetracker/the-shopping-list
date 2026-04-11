@@ -99,7 +99,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   // handle start new session
   const handleStartNewSession = () => {
     localStorage.clear();
-    router.push("/")
+    router.push("/app")
   }
 
   if (sessError?.status === 404 || (sessError && !session)) {
@@ -328,7 +328,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
             aria-label="Add item with details"
             className="fixed bottom-22 right-6 size-14 rounded-full flex items-center justify-center text-2xl font-bold shadow"
             style={{ background: "var(--brand-light)" }}
-            onClick={() => router.push(`/session/${token}/receipt`)}
+            onClick={() => router.push(`/app/session/${token}/receipt`)}
           >
             <CartIcon fill="var(--brand-dark)" />
           </button>

@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ session, syncStatus, handleToggleInvita
         </h1>
         {session.list_id && (
           <Link
-            href={`/list/${session.list_id}`}
+            href={`/app/list/${session.list_id}`}
             className="text-[10px] font-semibold uppercase tracking-widest"
             style={{ color: "var(--muted)" }}
           >

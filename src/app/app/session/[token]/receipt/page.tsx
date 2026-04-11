@@ -60,7 +60,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
 
       if (data.data?.listId) {
         // List-linked session: show QR linking back to the list, download receipt, then go home
-        setQrValue(`${baseUrl}/list/${data.data.listId}`);
+        setQrValue(`${baseUrl}/app/list/${data.data.listId}`);
         setShowQR(true);
 
         // Wait for QR code to mount in the DOM
@@ -73,12 +73,12 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
         clearParticipantData();
 
         // Go back to home after receipt download  
-        router.replace('/');
+        router.replace('/app');
         return;
       }
 
       // Quick Shop session: show QR template code as before
-      setQrValue(`${baseUrl}/template/${data.data?.templateId}`);
+      setQrValue(`${baseUrl}/app/template/${data.data?.templateId}`);
       setShowQR(true);
 
       // 3. Wait for QR code to mount in the DOM
@@ -90,7 +90,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
       if (data.success) {
         // Clear participant info from localStorage since the session is now fully deleted
         clearParticipantData();
-        router.replace('/');
+        router.replace('/app');
       }
     } catch (error) {
       setError(`Oops something went wrong. Please try again. ${error}`);

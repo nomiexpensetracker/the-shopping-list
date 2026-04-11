@@ -1,5 +1,5 @@
-import HomeModule from "@/modules/home";
+import LandingPage from "@/modules/landing";
 
 export default function HomePage() {
-  return <HomeModule />;
+  return <LandingPage />;
 }

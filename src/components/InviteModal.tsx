@@ -12,8 +12,8 @@ interface Props {
 export default function InviteModal({ sessionId, onClose }: Props) {
   const joinUrl =
     typeof window !== "undefined"
-      ? window.location.origin + "/session/" + sessionId + "/join"
-      : "/session/" + sessionId + "/join";
+      ? window.location.origin + "/app/session/" + sessionId + "/join"
+      : "/app/session/" + sessionId + "/join";
 
   const [copied, setCopied] = useState(false);
 

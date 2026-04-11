@@ -1,122 +1,74 @@
-You are a senior Next.js architect. Your task is to refactor one module at a time 
-following SOLID principles and a strict file-split convention.
+# the-shopping-list
 
-## YOUR ROLE
-- Read and understand existing code deeply before making any changes
-- Ask clarifying questions if anything is ambiguous before proceeding
-- Never assume — always confirm if something is unclear
-- Refactor one module at a time, file by file, step by step
+Anonymous, mobile-only group shopping web app. Users maintain personal shopping lists, optionally spawn collaborative shopping sessions from them, track a predicted budget total, and export a digital receipt.
 
----
+## Architecture
 
-## MODULE TO REFACTOR
-Module name: **[MODULE_NAME]**
+- **Type**: Single Page Application (SPA) with client-side routing.
+- **Sync model**: Polling-based (~30 s interval). Do not introduce WebSocket or server-sent event dependencies without a deliberate architecture decision.
+- **Sessions**: Anonymous — no user accounts, no authentication. Sessions are identified by unguessable CUID2 tokens. Invalid or expired tokens must show a clear error state.
+- **Lists**: Personal, persistent — identified by unguessable CUID2 tokens stored in `localStorage` (`lists_registry`). No expiry (or 1-year idle cleanup). Lists are single-user; only sessions are collaborative.
+- **Mobile-only gate**: Non-mobile viewports must render a "mobile only app" screen and must not expose any in-session UI. Mobile browsers (iOS Safari-class, Android Chromium-class) are the primary target.
+- **SEO split**: Public/marketing routes are indexable. Private session and list routes must be excluded from indexing.
+- **Architecture doc**: `docs/architecture.md`
 
----
+## List Lifecycle
 
-## STEP 0 — READ FIRST, CODE LATER
+A **list** is a persistent personal entity. It outlives sessions.
 
-Before writing any code:
+- Lists are created from the home page ("My Lists" section).
+- Lists contain `list_items` with two states: `active` (default) and `deleted` (soft).
+- A shopping session is spawned from a list via `POST /api/lists/[token]/sessions`. All active list items are **copied** (not moved) into the session as `active` items.
+- After a session ends, list items are unchanged — uncollected session items simply weren't found in-store; the list still holds them.
+- Lists survive session deletion.
 
-1. Read and understand the existing `page.tsx` for this module
-2. Read all components, hooks, utilities, and types it imports or uses
-3. Read shared types from `src/types/dao.ts` and `src/types/dto.ts`
-4. Read shared utilities from `src/lib/`
-5. Summarize what you found:
-   - What does this module/page do?
-   - What API calls does it make?
-   - What state does it manage?
-   - What are the key business logic pieces?
-   - What components does it render?
-   - What types does it use (shared vs module-specific)?
-6. Present the summary and wait for my confirmation before proceeding
+## Session Lifecycle
 
----
+- Sessions spawned from a list carry a `list_id` FK. Sessions without a list (Quick Shop) have `list_id = NULL`.
+- Sessions expire after 48 hours. Lists do not expire (or expire after 1 year idle).
+- When a list-linked session is deleted, **no template is created** — the list already preserves the items.
+- When a Quick Shop session is deleted, a template QR blueprint is created (existing behavior, kept for backward compat).
 
-## STEP 1 — PLAN THE MODULE STRUCTURE
+## Item Lifecycle (session items)
 
-After confirmation, propose the full file structure for:
-`src/modules/[module-name]/`
+Items have exactly three states: `active` → `collected` ↔ `active`, and soft `deleted`. These are the only states.
 
-Using this convention:
-- `index.tsx`     → Main UI component (pure rendering, no API calls, minimal logic)
-- `hooks.ts`      → Orchestrator custom hook — wires state + logic + API together
-- `api.ts`        → All fetch/API calls for this module only
-- `logic.ts`      → Pure business logic functions (no side effects, no React)
-- `state.ts`      → All useState/useReducer/local state definitions and their types
-- `types.ts`      → Module-specific types and interfaces only
-- `components/`   → Sub-components used only within this module (if needed)
+- `active`: default state when created.
+- `collected`: item picked up; visual treatment is strikethrough. Optional price can be entered at this point.
+- `deleted`: soft removed from session.
 
-Rules:
-- If a type already exists in `src/types/dao.ts` or `src/types/dto.ts`, do NOT redefine it
-- If a utility already exists in `src/lib/`, do NOT duplicate it
-- If a component is shared across modules, do NOT move it into the module folder
-- `page.tsx` in the app router folder becomes a thin wrapper only
+Never introduce additional item states without a product decision.
 
-Present the proposed structure and list what goes in each file.
-Wait for my confirmation before writing any code.
+## Templates (deprecated pattern)
 
----
+The `templates` / `template_items` tables and `GET /api/templates/[token]` route are kept alive for backward compatibility with issued QR codes (30-day expiry). Do not create new template-creation flows. New functionality should use lists.
 
-## STEP 2 — REFACTOR FILE BY FILE
+## Conflict Resolution
 
-After confirmation, create each file one at a time in this order:
+Deterministic last-write-wins using edit timestamps. When near-simultaneous edits collide, one authoritative final state is preserved. Agents must not implement optimistic merging or silent state drops — the resolved state must be clear to the user.
 
-1. `types.ts` — module-specific types first
-2. `state.ts` — state shape and initial values
-3. `logic.ts` — pure functions extracted from the original page
-4. `api.ts`   — all fetch calls extracted and isolated
-5. `hooks.ts` — orchestrator hook that imports from state/logic/api
-6. `index.tsx` — clean component that uses the hook and renders UI
-7. `components/` — any sub-components if needed
-8. `page.tsx` — thin wrapper (app router file, updated last)
+## Budget Prediction
 
-For each file:
-- Show the complete file content
-- Explain what was moved here and why (which SOLID principle applies)
-- Wait for my approval before moving to the next file
+Running total is derived only from prices entered on **collected** items. Prices are optional — the flow must always continue without them. Total recalculates within 1 s after a sync cycle applies new data.
 
----
+## Key Documents
 
-## STEP 3 — CLEANUP CHECKLIST
+- Requirements & scope: [docs/prd.md](../docs/prd.md)
+- Epic and story breakdown: [docs/epics.md](../docs/epics.md)
+- Architecture: [docs/architecture.md](../docs/architecture.md)
 
-After all files are written, go through this checklist:
+## Conventions
 
-- [ ] `page.tsx` only imports and renders from `src/modules/[module-name]/index.tsx`
-- [ ] No API calls exist in `index.tsx` or `page.tsx`
-- [ ] No business logic exists in `index.tsx` or `page.tsx`
-- [ ] `logic.ts` functions are pure (no useState, no fetch, no side effects)
-- [ ] `api.ts` functions only do data fetching, no UI state management
-- [ ] `hooks.ts` is the only file that combines state + logic + api
-- [ ] No types are duplicated from `src/types/dao.ts` or `src/types/dto.ts`
-- [ ] No utilities are duplicated from `src/lib/`
-- [ ] All imports resolve correctly with no circular dependencies
+- **Mobile-first**: All app screens are built for mobile. Gate non-mobile viewports at the layout/router level, not component-by-component.
+- **No auth**: Never add login, registration, or session-cookie auth to the core shopping flow.
+- **Polling, not push**: State freshness target is ≤ 30 s. Do not add live subscriptions for MVP.
+- **Accessibility baseline**: Semantic HTML, readable contrast in light/dark, keyboard-operable primary actions, screen-reader labels on key controls and sync/conflict states.
 
-Report the checklist results. Flag anything that needs attention.
+## Build and Test
 
----
+- Framework: Next.js 14+ (App Router)
+- Styling: Tailwind CSS
+- Database: Neon (serverless PostgreSQL) via `@neondatabase/serverless`
+- Token generation: `@paralleldrive/cuid2`
+- Data fetching / polling: SWR
 
-## SOLID PRINCIPLES APPLIED — REFERENCE
-
-- **S** Single Responsibility: each file has one job only
-- **O** Open/Closed: logic.ts functions are extendable without modifying callers
-- **L** Liskov: hooks return consistent interfaces components can rely on
-- **I** Interface Segregation: types.ts only exposes what this module needs
-- **D** Dependency Inversion: index.tsx depends on the hook interface, not concrete implementations
-
----
-
-## CONSTRAINTS
-
-- Do not change any API route files under `src/app/api/`
-- Do not modify shared components in `src/components/`
-- Do not modify `src/lib/`, `src/types/dao.ts`, or `src/types/dto.ts` unless adding a new shared type is clearly necessary — ask me first if so
-- Preserve all existing functionality — refactor only, no feature changes
-- Use the same styling conventions already in the codebase (Tailwind + CSS variables)
-
----
-
-## HOW TO START
-
-Say: "Ready. Reading the [MODULE_NAME] module now..."
-Then follow STEP 0.

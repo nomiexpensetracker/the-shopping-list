@@ -19,7 +19,7 @@ export function middleware(req: NextRequest) {
 
   // Only gate the in-session routes (not API routes, not public pages).
   // The MobileGate component provides additional client-side enforcement.
-  if (!pathname.startsWith("/session/")) {
+  if (!pathname.startsWith("/app/session/")) {
     return NextResponse.next();
   }
 
@@ -48,5 +48,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/session/:path*"],
+  matcher: ["/app/session/:path*"],
 };

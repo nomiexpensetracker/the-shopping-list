@@ -188,7 +188,7 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
       localStorage.setItem(`participant_${sessionId}_id`, participant.id);
       localStorage.setItem(`participant_${sessionId}_name`, participant.name);
       localStorage.setItem(`participant_${sessionId}_color`, participant.color);
-      router.push(`/session/${sessionId}`);
+      router.push(`/app/session/${sessionId}`);
     } catch {
       setShopError("Something went wrong. Please try again.");
       setStartingSession(false);
@@ -241,7 +241,7 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
             {errorMsg}
           </p>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/app")}
             className="px-6 py-3 rounded-xl text-white font-semibold"
             style={{ background: "var(--brand)" }}
           >

@@ -23,7 +23,7 @@ export function useHomeModule() {
   // Auto-resume any in-progress session
   useEffect(() => {
     const sessionId = findActiveSessionId();
-    if (sessionId) router.push("/session/" + sessionId);
+    if (sessionId) router.push("/app/session/" + sessionId);
   }, [router]);
 
   async function handleQuickShopSubmit(e: React.FormEvent) {
@@ -45,7 +45,7 @@ export function useHomeModule() {
         sessionData.participant.id,
         sessionData.participant.color
       );
-      router.push("/session/" + sessionData.id);
+      router.push("/app/session/" + sessionData.id);
     } catch (err) {
       quickShop.setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       quickShop.setLoading(false);
@@ -66,7 +66,7 @@ export function useHomeModule() {
     try {
       const { id, name, created_at } = await apiCreateList(newListModal.newListName.trim());
       addToListsRegistry({ id, name, last_active: created_at });
-      router.push(`/list/${id}`);
+      router.push(`/app/list/${id}`);
     } catch (err) {
       newListModal.setNewListError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       newListModal.setCreatingList(false);
@@ -82,7 +82,7 @@ export function useHomeModule() {
   return {
     // My Lists
     myLists: myListsState.myLists,
-    navigateToList: (id: string) => router.push(`/list/${id}`),
+    navigateToList: (id: string) => router.push(`/app/list/${id}`),
 
     // New List Modal
     showNewListModal: newListModal.showNewListModal,

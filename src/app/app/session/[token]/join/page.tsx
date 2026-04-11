@@ -38,7 +38,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
       localStorage.setItem(`participant_${token}_color`, participantData.color);
 
       // navigate to session page
-      router.push("/session/" + token);
+      router.push("/app/session/" + token);
       
     } catch (error) {
       setError(`Something went wrong. Please try again. ${JSON.stringify(error)}`);

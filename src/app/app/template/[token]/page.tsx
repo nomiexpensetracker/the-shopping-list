@@ -70,7 +70,7 @@ export default function TemplatePage({ params }: { params: Promise<{ token: stri
         await Promise.all(itemRequests);
 
         // 5. Redirect to session page with the update modal flag
-        router.replace(`/session/${sessionId}?with-template=true`);
+        router.replace(`/app/session/${sessionId}?with-template=true`);
       } catch {
         setErrorMessage("Something went wrong. Please try again.");
         setStatus("error");
@@ -108,7 +108,7 @@ export default function TemplatePage({ params }: { params: Promise<{ token: stri
               This QR code is no longer valid. QR codes from receipts expire after 30 days.
             </p>
             <button
-              onClick={() => router.replace("/")}
+              onClick={() => router.replace("/app")}
               className="mt-4 px-6 py-3 rounded-xl text-white font-semibold"
               style={{ background: "var(--brand)" }}
             >
@@ -126,7 +126,7 @@ export default function TemplatePage({ params }: { params: Promise<{ token: stri
               {errorMessage}
             </p>
             <button
-              onClick={() => router.replace("/")}
+              onClick={() => router.replace("/app")}
               className="mt-4 px-6 py-3 rounded-xl text-white font-semibold"
               style={{ background: "var(--brand)" }}
             >
