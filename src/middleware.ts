@@ -16,37 +16,37 @@ function isMobileUA(ua: string): boolean {
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  // Only gate the in-session routes (not API routes, not public pages).
-  // The MobileGate component provides additional client-side enforcement.
-  if (!pathname.startsWith("/app/session/")) {
-    return NextResponse.next();
-  }
-
   const ua = req.headers.get("user-agent") ?? "";
 
-  // Let API routes and Next.js internals through always.
-  if (
-    pathname.startsWith("/api/") ||
-    pathname.startsWith("/_next/") ||
-    pathname.startsWith("/favicon")
-  ) {
-    return NextResponse.next();
+  // ── Locale detection (all routes) ──────────────────────────────
+  // Detect preferred locale from Accept-Language and forward it as a
+  // response header so server components and API handlers can read it.
+  const acceptLanguage = req.headers.get("accept-language") ?? "";
+  const locale = acceptLanguage.includes("id") ? "id-ID" : "en-US";
+
+  // ── Mobile gate (session routes only) ──────────────────────────
+  // Only gate the in-session app routes. API routes, public pages,
+  // and starter-pack pages are explicitly excluded.
+  // The MobileGate component provides additional client-side enforcement.
+  if (pathname.startsWith("/app/session/")) {
+    const isDesktopUA =
+      /Windows NT|Macintosh|Linux x86_64/.test(ua) && !isMobileUA(ua);
+
+    if (isDesktopUA) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/mobile-only";
+      return NextResponse.redirect(url, { status: 302 });
+    }
   }
 
-  // If UA is clearly non-mobile, redirect to mobile-only page.
-  // We check specifically for desktop indicators to avoid false-positives on unknown UAs.
-  const isDesktopUA = /Windows NT|Macintosh|Linux x86_64/.test(ua) && !isMobileUA(ua);
-
-  if (isDesktopUA) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/mobile-only";
-    return NextResponse.redirect(url, { status: 302 });
-  }
-
-  return NextResponse.next();
+  const res = NextResponse.next();
+  res.headers.set("x-locale", locale);
+  return res;
 }
 
 export const config = {
-  matcher: ["/app/session/:path*"],
+  matcher: [
+    // Apply to all routes except Next.js internals and static files
+    "/((?!_next/static|_next/image|favicon|icons).*)",
+  ],
 };

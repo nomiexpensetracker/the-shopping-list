@@ -29,3 +29,12 @@ export function formatLocaleData(date: string, locale = "id-ID"): string {
     day: "numeric",
   })
 }
+
+/** Format a currency amount using the given locale and currency code. */
+export function formatCurrency(amount: number, locale = "id-ID", currency = "IDR"): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+  }).format(amount);
+}

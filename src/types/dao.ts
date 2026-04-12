@@ -91,6 +91,49 @@ export interface List {
   items: ListItem[];
 }
 
+// ============================================================
+// Starter Packs
+// ============================================================
+
+export interface StarterPack {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  category: string | null;
+  cuisine: string | null;
+  difficulty: string | null;
+  locale: string;
+  is_published: boolean;
+  is_featured: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StarterPackVariant {
+  id: string;
+  starter_pack_id: string;
+  name: string;
+  locale: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StarterPackVariantItem {
+  id: string;
+  variant_id: string;
+  name: string;
+  quantity: number;
+  unit: string | null;
+  is_optional: boolean;
+  category: string | null;
+  tags: string[];
+  default_price: number | null;
+  position: number;
+  created_at: string;
+}
+
 /** Valid next states from a given current state. */
 export const VALID_TRANSITIONS: Record<ItemState, ItemState[]> = {
   active: ["collected", "deleted", "restored"],

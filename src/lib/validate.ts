@@ -70,3 +70,8 @@ export function isValidActivityAction(action: unknown): action is string {
   const validActions = ["created", "updated", "deleted", "restored", "collected"];
   return typeof action === "string" && validActions.includes(action);
 }
+
+/** Validate a starter pack slug: lowercase letters, digits, and hyphens only. */
+export function isValidSlug(slug: unknown): slug is string {
+  return typeof slug === "string" && /^[a-z0-9-]+$/.test(slug) && slug.length > 0 && slug.length <= 100;
+}
