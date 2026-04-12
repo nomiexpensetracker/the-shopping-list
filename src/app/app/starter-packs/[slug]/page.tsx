@@ -5,6 +5,7 @@ import { sql } from "@/lib/db";
 import type { StarterPackDetailResponse } from "@/types/dto";
 import type { StarterPackVariantItem } from "@/types/dao";
 import StartShoppingButton from "@/components/StartShoppingButton";
+import StarterPacksTopBar from "@/components/StarterPacksTopBar";
 
 export const dynamic = "force-dynamic";
 
@@ -147,20 +148,22 @@ export default async function StarterPackDetailPage(
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <main className="min-h-screen bg-white dark:bg-gray-950">
-        {/* Header */}
-        <div className="border-b border-gray-100 dark:border-gray-800">
+      <div style={{ background: "var(--background)", minHeight: "100dvh" }}>
+        <StarterPacksTopBar />
+
+        {/* Pack header */}
+        <div style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="max-w-3xl mx-auto px-6 py-10">
-            <nav className="mb-5 text-sm text-gray-500 dark:text-gray-400">
-              <Link href="/" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+            <nav className="mb-5 text-sm text-muted">
+              <Link href="/" className="text-muted hover:text-foreground transition-colors">
                 Beranda
               </Link>
               <span className="mx-2">/</span>
-              <Link href="/app/starter-packs" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+              <Link href="/app/starter-packs" className="text-muted hover:text-foreground transition-colors">
                 Starter Packs
               </Link>
               <span className="mx-2">/</span>
-              <span className="text-gray-900 dark:text-gray-100">{pack.title}</span>
+              <span className="text-foreground">{pack.title}</span>
             </nav>
 
             {/* Tags */}
@@ -170,12 +173,12 @@ export default async function StarterPackDetailPage(
               {pack.difficulty && <Tag>{pack.difficulty}</Tag>}
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 leading-tight">
+            <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight text-foreground">
               {pack.title}
             </h1>
 
             {pack.description && (
-              <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-6 max-w-2xl">
+              <p className="text-lg leading-relaxed mb-6 max-w-2xl text-muted">
                 {pack.description}
               </p>
             )}
@@ -192,19 +195,19 @@ export default async function StarterPackDetailPage(
         <div className="max-w-3xl mx-auto px-6 py-10 space-y-12">
           {/* Ingredients — SEO critical section */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-5">
+            <h2 className="text-xl font-bold mb-5 text-foreground">
               Bahan-bahan
               {primaryVariant && primaryVariant.name && (
-                <span className="ml-2 text-base font-normal text-gray-500 dark:text-gray-400">
+                <span className="ml-2 text-base font-normal text-muted">
                   ({primaryVariant.name})
                 </span>
               )}
             </h2>
 
             {allItems.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400">Belum ada item.</p>
+              <p className="text-muted">Belum ada item.</p>
             ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+              <ul className="divide-y divide-border">
                 {allItems.map((item) => (
                   <IngredientRow key={item.id} item={item} />
                 ))}
@@ -215,21 +218,21 @@ export default async function StarterPackDetailPage(
           {/* Variants — show all if more than one */}
           {pack.variants.length > 1 && (
             <section>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-5">
+              <h2 className="text-xl font-bold mb-5 text-foreground">
                 Varian Tersedia
               </h2>
               <div className="space-y-6">
                 {pack.variants.map((variant) => (
                   <div key={variant.id}>
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                    <h3 className="font-semibold mb-3 text-foreground">
                       {variant.name}
                     </h3>
                     {variant.description && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                      <p className="text-sm text-muted mb-3">
                         {variant.description}
                       </p>
                     )}
-                    <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                    <ul className="divide-y divide-border">
                       {variant.items.map((item) => (
                         <IngredientRow key={item.id} item={item} />
                       ))}
@@ -241,11 +244,17 @@ export default async function StarterPackDetailPage(
           )}
 
           {/* Second CTA */}
-          <section className="bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl p-6 text-center border border-emerald-100 dark:border-emerald-900">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <section
+            className="rounded-2xl p-6 text-center"
+            style={{
+              background: "var(--brand-light)",
+              border: "1px solid var(--brand)",
+            }}
+          >
+            <h2 className="text-lg font-bold mb-2 text-foreground">
               Siap berbelanja?
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-5">
+            <p className="text-sm text-muted mb-5">
               Buat sesi belanja dari pack ini dan ajak teman atau keluargamu.
             </p>
             <StartShoppingButton
@@ -259,13 +268,13 @@ export default async function StarterPackDetailPage(
           <div>
             <Link
               href="/app/starter-packs"
-              className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+              className="text-sm text-brand hover:underline"
             >
               ← Lihat semua starter packs
             </Link>
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }
@@ -275,7 +284,10 @@ export default async function StarterPackDetailPage(
 // ----------------------------------------------------------------
 function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2.5 py-1 rounded-full capitalize">
+    <span
+      className="text-xs font-medium px-2.5 py-1 rounded-full capitalize"
+      style={{ background: "var(--border)", color: "var(--muted)" }}
+    >
       {children}
     </span>
   );
@@ -285,15 +297,15 @@ function IngredientRow({ item }: { item: StarterPackVariantItem }) {
   return (
     <li className="flex items-center justify-between py-3 gap-4">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-        <span className="text-gray-900 dark:text-gray-100 text-sm font-medium truncate">
+        <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "var(--brand)" }} />
+        <span className="text-sm font-medium truncate text-foreground">
           {item.name}
         </span>
         {item.is_optional && (
-          <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500 italic">(opsional)</span>
+          <span className="shrink-0 text-xs text-muted italic">(opsional)</span>
         )}
       </div>
-      <span className="shrink-0 text-sm text-gray-500 dark:text-gray-400 tabular-nums">
+      <span className="shrink-0 text-sm text-muted tabular-nums">
         {item.quantity}
         {item.unit ? ` ${item.unit}` : ""}
       </span>

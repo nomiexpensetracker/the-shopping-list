@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { SyncDataType } from '@/types/dao';
 import { GetSessionDetailResponse } from '@/types/dto';
 import ParticipantAvatars from './ParticipantAvatars';
-import { ShareIcon } from './icons';
 import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {

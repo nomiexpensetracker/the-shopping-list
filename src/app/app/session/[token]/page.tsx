@@ -240,7 +240,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
         <Header
           session={session.data}
           syncStatus={syncStatus}
-          handleToggleInvitation={handleToggleInvitation}
         />
       )}
 
