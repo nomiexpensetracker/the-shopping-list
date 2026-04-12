@@ -2,6 +2,7 @@
 
 import MobileGate from "@/components/MobileGate";
 import ThemeToggle from "@/components/ThemeToggle";
+import BottomNavbar from "@/components/BottomNavbar";
 
 import { useHomeModule } from "./hooks";
 import MyListsSection from "./components/MyListsSection";
@@ -35,7 +36,7 @@ export default function HomeModule() {
     <MobileGate>
       <main className="relative min-h-dvh flex flex-col">
         <div
-          className="flex-1 flex flex-col px-6 pt-14 pb-10 gap-8"
+          className="flex-1 flex flex-col px-6 pt-14 pb-28 gap-8"
           style={{ background: "var(--background)" }}
         >
           {/* Top bar */}
@@ -88,6 +89,8 @@ export default function HomeModule() {
           />
         </div>
       </main>
+
+      <BottomNavbar variant="home" onAdd={openNewListModal} />
 
       {showNewListModal && (
         <NewListModal

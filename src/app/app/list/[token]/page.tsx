@@ -1,10 +1,12 @@
 "use client";
 
-import { use, useEffect, useRef, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import MobileGate from "@/components/MobileGate";
 import ThemeToggle from "@/components/ThemeToggle";
+import BottomNavbar from "@/components/BottomNavbar";
+import ListSettingsModal from "@/components/ListSettingsModal";
 import { AddIcon } from "@/components/icons";
 import { CommonResponse, GetListResponse, PostSessionResponse } from "@/types/dto";
 import type { ListItem } from "@/types/dao";
@@ -22,10 +24,8 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Rename list
-  const [editingName, setEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState("");
-  const nameRef = useRef<HTMLInputElement>(null);
+  // Settings modal
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Add item
   const [newItemName, setNewItemName] = useState("");
@@ -61,7 +61,6 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
           return;
         }
         setList(data.data);
-        setNameInput(data.data.name);
         setStatus("ready");
 
         // Show "Add to My Lists" banner if not in registry
@@ -77,15 +76,10 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
   }, [token]);
 
   // ── Rename list ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (editingName && nameRef.current) nameRef.current.focus();
-  }, [editingName]);
-
-  const saveName = async () => {
-    const trimmed = nameInput.trim();
+  const handleSaveName = async (newName: string) => {
+    const trimmed = newName.trim();
     if (!trimmed || trimmed === list?.name) {
-      setEditingName(false);
-      setNameInput(list?.name ?? "");
+      setShowSettingsModal(false);
       return;
     }
     await fetch(`/api/lists/${token}`, {
@@ -95,7 +89,7 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
     });
     setList((prev) => prev ? { ...prev, name: trimmed } : prev);
     updateListInRegistry(token, { name: trimmed, last_active: new Date().toISOString() });
-    setEditingName(false);
+    setShowSettingsModal(false);
   };
 
   // ── Add item ─────────────────────────────────────────────────────────────
@@ -266,37 +260,12 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
           style={{ background: "var(--main-bg)", borderBottom: "1px solid var(--border)" }}
         >
           <div className="flex flex-col min-w-0 flex-1 pr-3">
-            {editingName ? (
-              <input
-                ref={nameRef}
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                onBlur={saveName}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveName();
-                  if (e.key === "Escape") {
-                    setEditingName(false);
-                    setNameInput(list?.name ?? "");
-                  }
-                }}
-                maxLength={60}
-                className="text-lg font-extrabold bg-transparent border-b-2 outline-none truncate"
-                style={{
-                  color: "var(--brand)",
-                  borderColor: "var(--brand)",
-                }}
-                aria-label="Rename list"
-              />
-            ) : (
-              <button
-                onClick={() => setEditingName(true)}
-                className="text-lg font-extrabold truncate text-left"
-                style={{ color: "var(--brand)" }}
-                aria-label="Tap to rename list"
-              >
-                {list?.name}
-              </button>
-            )}
+            <span
+              className="text-lg font-extrabold truncate"
+              style={{ color: "var(--brand)" }}
+            >
+              {list?.name}
+            </span>
             <span className="text-[10px] uppercase font-semibold tracking-widest" style={{ color: "var(--muted)" }}>
               My List
             </span>
@@ -346,7 +315,7 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
           </div>
         )}
 
-        <main className="flex-1 flex flex-col px-4 py-6 gap-6 pb-32">
+        <main className="flex-1 flex flex-col px-4 py-6 gap-6 pb-28">
           {/* ── Items list ──────────────────────────────────────────── */}
           {items.length === 0 ? (
             <div
@@ -513,20 +482,21 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
           </form>
         </main>
 
-        {/* ── Start Shopping CTA (sticky bottom) ──────────────────────── */}
-        <div
-          className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3"
-          style={{ background: "var(--background)", borderTop: "1px solid var(--border)" }}
-        >
-          <button
-            onClick={() => setShowShopModal(true)}
-            className="w-full py-4 rounded-xl text-white font-bold text-base"
-            style={{ background: "var(--brand)" }}
-          >
-            Start Shopping {items.length > 0 ? `(${items.length} items)` : ""}
-          </button>
-        </div>
+        <BottomNavbar
+          variant="list"
+          onCart={() => setShowShopModal(true)}
+          onSettings={() => setShowSettingsModal(true)}
+        />
       </div>
+
+      {/* ── List Settings modal ──────────────────────────────────────── */}
+      {showSettingsModal && list && (
+        <ListSettingsModal
+          listName={list.name}
+          onSave={handleSaveName}
+          onClose={() => setShowSettingsModal(false)}
+        />
+      )}
 
       {/* ── Start Shopping modal ─────────────────────────────────────── */}
       {showShopModal && (

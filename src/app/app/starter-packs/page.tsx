@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     title: "Starter Packs — Daftar Belanja Siap Pakai",
     description:
       "Pilih dari koleksi daftar belanja siap pakai. Dari rendang hingga acara BBQ — mulai belanja dalam hitungan detik.",
-    url: "https://the-shopping-list-eight.vercel.app/starter-packs",
+    url: "https://the-shopping-list-eight.vercel.app/app/starter-packs",
     siteName: "The Shopping List",
     type: "website",
   },
@@ -115,7 +115,7 @@ export default async function StarterPacksPage() {
 function PackCard({ pack, featured = false }: { pack: StarterPack; featured?: boolean }) {
   return (
     <Link
-      href={`/starter-packs/${pack.slug}`}
+      href={`/app/starter-packs/${pack.slug}`}
       className={`
         group block rounded-2xl border p-5 transition-all duration-150
         hover:shadow-md hover:-translate-y-0.5

@@ -127,3 +127,27 @@ export const ReloadIcon = ({ fill = "#ffffff" }) => (
     </g>
   </svg>
 )
+
+export const HomeIcon = ({ fill = "#ffffff" }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g id="Interface / Home">
+      <path id="Vector" d="M3 12L5 10M5 10L12 3L19 10M5 10V20C5 20.5523 5.44772 21 6 21H9M19 10L21 12M19 10V20C19 20.5523 18.5523 21 18 21H15M9 21V15C9 14.4477 9.44772 14 10 14H14C14.5523 14 15 14.4477 15 15V21M9 21H15" stroke={fill} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </g>
+  </svg>
+)
+
+export const SettingsIcon = ({ fill = "#ffffff" }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g id="Interface / Settings">
+      <path id="Vector" d="M3 6H7M11 6H21M7 6C7 7.10457 7.89543 8 9 8C10.1046 8 11 7.10457 11 6C11 4.89543 10.1046 4 9 4C7.89543 4 7 4.89543 7 6ZM3 12H15M19 12H21M15 12C15 13.1046 15.8954 14 17 14C18.1046 14 19 13.1046 19 12C19 10.8954 18.1046 10 17 10C15.8954 10 15 10.8954 15 12ZM3 18H7M11 18H21M7 18C7 19.1046 7.89543 20 9 20C10.1046 20 11 19.1046 11 18C11 16.8954 10.1046 16 9 16C7.89543 16 7 16.8954 7 18Z" stroke={fill} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </g>
+  </svg>
+)
+
+export const PacksIcon = ({ fill = "#ffffff" }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g id="Interface / Grid">
+      <path id="Vector" d="M3 3H10V10H3V3ZM14 3H21V10H14V3ZM3 14H10V21H3V14ZM14 14H21V21H14V14Z" stroke={fill} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </g>
+  </svg>
+)

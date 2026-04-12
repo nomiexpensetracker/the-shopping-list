@@ -12,7 +12,7 @@ export default function NotFound() {
           Starter pack yang kamu cari tidak ada atau tidak lagi tersedia.
         </p>
         <Link
-          href="/starter-packs"
+          href="/app/starter-packs"
           className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors"
         >
           ← Lihat semua packs

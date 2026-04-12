@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${BASE_URL}/starter-packs`,
+      url: `${BASE_URL}/app/starter-packs`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ORDER BY updated_at DESC
     `;
     packRoutes = rows.map((r) => ({
-      url: `${BASE_URL}/starter-packs/${r.slug as string}`,
+      url: `${BASE_URL}/app/starter-packs/${r.slug as string}`,
       lastModified: new Date(r.updated_at as string),
       changeFrequency: "weekly" as const,
       priority: 0.8,

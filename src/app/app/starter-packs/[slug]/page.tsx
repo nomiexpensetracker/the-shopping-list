@@ -111,7 +111,7 @@ export async function generateMetadata(
     openGraph: {
       title,
       description,
-      url: `https://the-shopping-list-eight.vercel.app/starter-packs/${slug}`,
+      url: `https://the-shopping-list-eight.vercel.app/app/starter-packs/${slug}`,
       siteName: "The Shopping List",
       images: [{ url: ogUrl, width: 1200, height: 630, alt: pack.title }],
       type: "website",
@@ -156,7 +156,7 @@ export default async function StarterPackDetailPage(
                 Beranda
               </Link>
               <span className="mx-2">/</span>
-              <Link href="/starter-packs" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+              <Link href="/app/starter-packs" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                 Starter Packs
               </Link>
               <span className="mx-2">/</span>
@@ -258,7 +258,7 @@ export default async function StarterPackDetailPage(
           {/* Back link */}
           <div>
             <Link
-              href="/starter-packs"
+              href="/app/starter-packs"
               className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
             >
               ← Lihat semua starter packs

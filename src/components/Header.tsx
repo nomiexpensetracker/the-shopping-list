@@ -10,10 +10,9 @@ import ThemeToggle from './ThemeToggle';
 interface HeaderProps {
   session: GetSessionDetailResponse;
   syncStatus: SyncDataType;
-  handleToggleInvitation: VoidFunction;
 }
 
-const Header: React.FC<HeaderProps> = ({ session, syncStatus, handleToggleInvitation }) => {
+const Header: React.FC<HeaderProps> = ({ session, syncStatus }) => {
   return (
     <header
       className="sticky top-0 z-10 h-20 flex items-center justify-between px-4 py-3"
@@ -51,16 +50,6 @@ const Header: React.FC<HeaderProps> = ({ session, syncStatus, handleToggleInvita
       <div className="flex items-center gap-2">
         {/* Participant avatars */}
         <ParticipantAvatars participants={session.participants ?? []} />
-
-        {/* Invite */}
-        <button
-          onClick={handleToggleInvitation}
-          aria-label="Invite collaborators"
-          className="w-8 h-8 rounded-full flex items-center justify-center"
-          style={{ color: "var(--brand)" }}
-        >
-          <ShareIcon fill="var(--foreground)" />
-        </button>
 
         {/* Theme toggle */}
         <ThemeToggle />

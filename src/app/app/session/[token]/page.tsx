@@ -17,7 +17,9 @@ import CollectModal from "@/components/CollectModal";
 import EditItemModal from "@/components/EditItemModal";
 import UpdateSessionModal from "@/components/UpdateSessionModal";
 import ParticipantToast from "@/components/ParticipantToast";
-import { AddIcon, CartIcon } from "@/components/icons";
+import BottomNavbar from "@/components/BottomNavbar";
+import EndSessionModal from "@/components/EndSessionModal";
+import { CartIcon } from "@/components/icons";
 
 import { formatRupiah } from "@/lib/utils";
 import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
@@ -35,6 +37,8 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   const [editTarget, setEditTarget] = useState<Item | null | "new">(null);
   const [showInvite, setShowInvite] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncDataType>("idle");
+  const [showEndModal, setShowEndModal] = useState(false);
+  const [endingSession, setEndingSession] = useState(false);
 
   // fetch session details, including participants 
   const { data: session, error: sessError } = useSWR<CommonResponse<GetSessionDetailResponse>>(
@@ -88,7 +92,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
     const currentUser = session.data.participants.find((participant) => participant.id === currentUserId)
     if (currentUser && currentUser.role === 'host') return true;
     return false;
-  }, [session, currentUserId])
+  }, [session, currentUserId]);
 
   const refetchAll = () => {
     setSyncStatus("syncing");
@@ -214,6 +218,18 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
 
   const handleToggleInvitation = () => setShowInvite((prev) => !prev);
 
+  const handleEndSession = async () => {
+    setEndingSession(true);
+    try {
+      await fetch(`/api/sessions/${token}`, { method: "DELETE" });
+    } finally {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("participant_"))
+        .forEach((k) => localStorage.removeItem(k));
+      router.push("/app");
+    }
+  };
+
   return (
     <MobileGate>
       {/* noindex for private session */}
@@ -221,11 +237,15 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
 
       {/* Header */}
       {session && session.data && (
-        <Header session={session.data} syncStatus={syncStatus} handleToggleInvitation={handleToggleInvitation} />
+        <Header
+          session={session.data}
+          syncStatus={syncStatus}
+          handleToggleInvitation={handleToggleInvitation}
+        />
       )}
 
       <main
-        className="min-h-dvh flex flex-col relative px-4 py-6 gap-6"
+        className="min-h-dvh flex flex-col relative px-4 py-6 gap-6 pb-28"
         style={{
           background: "var(--background)",
         }}
@@ -323,28 +343,26 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           </div>
         )}
 
-        {/* Floating Action Button */}
-        {isUserHost && (
+        {/* Floating Action Button — receipt */}
+        {isUserHost && collectedItems.length > 0 && (
           <button
             id="fab-cart-action-button"
             aria-label="Add item with details"
-            className="fixed bottom-22 right-6 size-14 rounded-full flex items-center justify-center text-2xl font-bold shadow"
+            className="fixed bottom-24 right-6 size-14 rounded-full flex items-center justify-center text-2xl font-bold shadow"
             style={{ background: "var(--brand-light)" }}
             onClick={() => router.push(`/app/session/${token}/receipt`)}
           >
             <CartIcon fill="var(--brand-dark)" />
           </button>
         )}
-        <button
-          id="fab-add-action-button"
-          onClick={() => setEditTarget("new")}
-          aria-label="Add item with details"
-          className="fixed bottom-6 right-6 size-14 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow"
-          style={{ background: "var(--brand)" }}
-        >
-          <AddIcon />
-        </button>
       </main>
+
+      <BottomNavbar
+        variant="session"
+        onShare={() => setShowInvite(true)}
+        onAdd={() => setEditTarget("new")}
+        onEnd={() => setShowEndModal(true)}
+      />
 
       {/* Modals */}
       {collectTarget && (
@@ -388,6 +406,14 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
             mutateSummary();
           }}
           onClose={() => router.replace(pathname, { scroll: false })}
+        />
+      )}
+
+      {showEndModal && (
+        <EndSessionModal
+          onConfirm={handleEndSession}
+          onClose={() => setShowEndModal(false)}
+          loading={endingSession}
         />
       )}
     </MobileGate>
