@@ -6,21 +6,26 @@ import type { StarterPackDetailResponse } from "@/types/dto";
 import type { StarterPackVariantItem } from "@/types/dao";
 import StartShoppingButton from "@/components/StartShoppingButton";
 
-// Revalidate every hour
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 // ----------------------------------------------------------------
 // Data fetching (direct DB — no internal fetch round-trip)
 // ----------------------------------------------------------------
 async function fetchPack(slug: string): Promise<StarterPackDetailResponse | null> {
-  const [pack] = await sql`
+  let pack: Record<string, unknown> | undefined;
+  let variants: Record<string, unknown>[] = [];
+  let items: Record<string, unknown>[] = [];
+
+  try {
+  const [_pack] = await sql`
     SELECT id, slug, title, description, category, cuisine, difficulty, locale, is_featured, updated_at
     FROM starter_packs
     WHERE slug = ${slug} AND is_published = true
   `;
+  pack = _pack;
   if (!pack) return null;
 
-  const variants = await sql`
+  variants = await sql`
     SELECT id, name, locale, description
     FROM starter_pack_variants
     WHERE starter_pack_id = ${pack.id as string}
@@ -28,7 +33,6 @@ async function fetchPack(slug: string): Promise<StarterPackDetailResponse | null
   `;
 
   const variantIds = variants.map((v) => v.id as string);
-  let items: Record<string, unknown>[] = [];
   if (variantIds.length > 0) {
     items = await sql`
       SELECT id, variant_id, name, quantity, unit, is_optional, category, tags, default_price, position
@@ -37,6 +41,12 @@ async function fetchPack(slug: string): Promise<StarterPackDetailResponse | null
       ORDER BY variant_id, position
     `;
   }
+  } catch (err) {
+    console.error(`[fetchPack] DB error for slug "${slug}":`, err);
+    return null;
+  }
+
+  if (!pack) return null;
 
   const itemsByVariant = new Map<string, StarterPackVariantItem[]>();
   for (const item of items) {
@@ -76,20 +86,6 @@ async function fetchPack(slug: string): Promise<StarterPackDetailResponse | null
       items: itemsByVariant.get(v.id as string) ?? [],
     })),
   };
-}
-
-// ----------------------------------------------------------------
-// Static params (pre-render all published slugs)
-// ----------------------------------------------------------------
-export async function generateStaticParams() {
-  try {
-    const rows = await sql`
-      SELECT slug FROM starter_packs WHERE is_published = true
-    `;
-    return rows.map((r) => ({ slug: r.slug as string }));
-  } catch {
-    return [];
-  }
 }
 
 // ----------------------------------------------------------------

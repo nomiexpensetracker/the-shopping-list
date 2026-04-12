@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 import type { StarterPack } from "@/types/dao";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Starter Packs — Daftar Belanja Siap Pakai | The Shopping List",
   description:

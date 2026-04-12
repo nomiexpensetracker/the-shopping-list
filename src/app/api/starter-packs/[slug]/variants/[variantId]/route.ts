@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql, getClient } from "@/lib/db";
-import { isValidSlug, isValidToken, isValidParticipantName } from "@/lib/validate";
+import { isValidSlug, isValidParticipantName } from "@/lib/validate";
 import { generateSessionId, generateSessionParticipantId, generateItemId } from "@/lib/session";
 import { getRandomHexColor } from "@/lib/utils";
 import type { PostStarterPackStartResponse } from "@/types/dto";
@@ -19,13 +19,6 @@ export async function POST(
   if (!isValidSlug(slug)) {
     return NextResponse.json(
       { error: "Invalid slug", success: false, status: 400 },
-      { status: 400 }
-    );
-  }
-
-  if (!isValidToken(variantId)) {
-    return NextResponse.json(
-      { error: "Invalid variant ID", success: false, status: 400 },
       { status: 400 }
     );
   }

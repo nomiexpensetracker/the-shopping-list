@@ -75,3 +75,13 @@ export function isValidActivityAction(action: unknown): action is string {
 export function isValidSlug(slug: unknown): slug is string {
   return typeof slug === "string" && /^[a-z0-9-]+$/.test(slug) && slug.length > 0 && slug.length <= 100;
 }
+
+/** Validate a locale string: e.g. 'en', 'en-US', 'id', 'id-ID'. */
+export function isValidLocale(locale: unknown): locale is string {
+  return typeof locale === "string" && /^[a-z]{2}(-[A-Z]{2})?$/.test(locale);
+}
+
+/** Validate a variant ID: CUID2 format (24 lowercase alphanumeric chars). */
+export function isValidVariantId(variantId: unknown): variantId is string {
+  return typeof variantId === "string" && /^[a-z0-9]{24,32}$/.test(variantId);
+}
