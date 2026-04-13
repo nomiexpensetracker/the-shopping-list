@@ -1,3 +1,5 @@
+import { CloseIcon } from "@/components/icons";
+
 interface NewListModalProps {
   listName: string;
   setListName: (v: string) => void;
@@ -49,14 +51,24 @@ export default function NewListModal({
           {error && (
             <p role="alert" className="text-red-500 text-sm">{error}</p>
           )}
-          <button
-            type="submit"
-            disabled={creating}
-            className="w-full py-4 rounded-xl text-white font-bold text-base disabled:opacity-50"
-            style={{ background: "var(--brand)" }}
-          >
-            {creating ? "Creating…" : "Create List"}
-          </button>
+
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center"
+              style={{ background: "var(--background)", color: "var(--foreground)" }}
+            >
+              <CloseIcon fill="var(--foreground)" />
+            </button>
+            <button
+              type="submit"
+              disabled={creating}
+              className="w-full py-4 rounded-xl text-white font-bold text-base disabled:opacity-50"
+              style={{ background: "var(--brand)" }}
+            >
+              {creating ? "Creating…" : "Create List"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

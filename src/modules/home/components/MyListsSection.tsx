@@ -4,13 +4,11 @@ import type { ListRegistryEntry } from "@/types/dto";
 interface MyListsSectionProps {
   myLists: ListRegistryEntry[];
   onNavigateToList: (id: string) => void;
-  onOpenNewListModal: () => void;
 }
 
 export default function MyListsSection({
   myLists,
   onNavigateToList,
-  onOpenNewListModal,
 }: MyListsSectionProps) {
   return (
     <section className="flex flex-col gap-3">
@@ -21,13 +19,6 @@ export default function MyListsSection({
         >
           My Lists
         </p>
-        <button
-          onClick={onOpenNewListModal}
-          className="px-3 py-1.5 rounded-lg text-sm font-bold text-white"
-          style={{ background: "var(--brand)" }}
-        >
-          + New List
-        </button>
       </div>
 
       {myLists.length === 0 ? (

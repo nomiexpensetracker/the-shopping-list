@@ -8,7 +8,7 @@ const ThemeToggle = dynamic(() => import("./ThemeToggle"), { ssr: false });
 export default function StarterPacksTopBar() {
   return (
     <header
-      className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 h-16"
+      className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 h-20"
       style={{ background: "var(--main-bg)", borderBottom: "1px solid var(--border)" }}
     >
       <Link href="/app" className="flex leading-none gap-1">

@@ -97,12 +97,12 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const pack = await fetchPack(slug);
-  if (!pack) return { title: "Tidak ditemukan" };
+  if (!pack) return { title: "Not found" };
 
-  const title = `${pack.title} — Daftar Belanja Lengkap`;
+  const title = `${pack.title} — Complete Shopping List`;
   const description =
     pack.description ??
-    `Daftar belanja lengkap untuk ${pack.title}. Mulai belanja dalam hitungan detik.`;
+    `Complete shopping list for ${pack.title}. Start shopping in seconds.`;
   const ogUrl = `https://the-shopping-list-eight.vercel.app/api/og/starter-pack?title=${encodeURIComponent(pack.title)}&description=${encodeURIComponent(description)}`;
 
   return {
@@ -156,7 +156,7 @@ export default async function StarterPackDetailPage(
           <div className="max-w-3xl mx-auto px-6 py-10">
             <nav className="mb-5 text-sm text-muted">
               <Link href="/" className="text-muted hover:text-foreground transition-colors">
-                Beranda
+                Home
               </Link>
               <span className="mx-2">/</span>
               <Link href="/app/starter-packs" className="text-muted hover:text-foreground transition-colors">
@@ -196,7 +196,7 @@ export default async function StarterPackDetailPage(
           {/* Ingredients — SEO critical section */}
           <section>
             <h2 className="text-xl font-bold mb-5 text-foreground">
-              Bahan-bahan
+              Ingredients
               {primaryVariant && primaryVariant.name && (
                 <span className="ml-2 text-base font-normal text-muted">
                   ({primaryVariant.name})
@@ -205,7 +205,7 @@ export default async function StarterPackDetailPage(
             </h2>
 
             {allItems.length === 0 ? (
-              <p className="text-muted">Belum ada item.</p>
+              <p className="text-muted">No items yet.</p>
             ) : (
               <ul className="divide-y divide-border">
                 {allItems.map((item) => (
@@ -252,10 +252,10 @@ export default async function StarterPackDetailPage(
             }}
           >
             <h2 className="text-lg font-bold mb-2 text-foreground">
-              Siap berbelanja?
+              Ready to shop?
             </h2>
             <p className="text-sm text-muted mb-5">
-              Buat sesi belanja dari pack ini dan ajak teman atau keluargamu.
+              Create a shopping session from this pack and invite friends or family.
             </p>
             <StartShoppingButton
               variants={pack.variants}
@@ -270,7 +270,7 @@ export default async function StarterPackDetailPage(
               href="/app/starter-packs"
               className="text-sm text-brand hover:underline"
             >
-              ← Lihat semua starter packs
+              ← View all starter packs
             </Link>
           </div>
         </div>
@@ -302,7 +302,7 @@ function IngredientRow({ item }: { item: StarterPackVariantItem }) {
           {item.name}
         </span>
         {item.is_optional && (
-          <span className="shrink-0 text-xs text-muted italic">(opsional)</span>
+          <span className="shrink-0 text-xs text-muted italic">(optional)</span>
         )}
       </div>
       <span className="shrink-0 text-sm text-muted tabular-nums">

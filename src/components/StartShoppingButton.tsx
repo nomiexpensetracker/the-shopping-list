@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { StarterPackVariantWithItems } from "@/types/dto";
+import { CloseIcon } from "@/components/icons";
 
 // Detect mobile UA on the client.
 // This is for UX branching only — the mobile gate is enforced server-side.
@@ -41,11 +42,11 @@ export default function StartShoppingButton({ variants, packSlug, packTitle }: P
   async function handleStart() {
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Masukkan nama kamu terlebih dahulu");
+      setError("Please enter your name");
       return;
     }
     if (trimmed.length > 26) {
-      setError("Nama maksimal 26 karakter");
+      setError("Name must be 26 characters or less");
       return;
     }
 
@@ -65,7 +66,7 @@ export default function StartShoppingButton({ variants, packSlug, packTitle }: P
       const json = await res.json();
 
       if (!res.ok || !json.success) {
-        setError(json.error ?? "Gagal membuat sesi. Coba lagi.");
+        setError(json.error ?? "Failed to create session. Please try again.");
         setStep("modal");
         return;
       }
@@ -79,16 +80,17 @@ export default function StartShoppingButton({ variants, packSlug, packTitle }: P
       localStorage.setItem(`participant_${token}_name`, participant.name);
       localStorage.setItem(`participant_${token}_color`, participant.color);
 
-      const url = `${window.location.origin}/app/session/${token}`;
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app';
+      const completeUrl = `${baseUrl}/app/session/${token}`;
 
       if (isMobileDevice()) {
         router.push(`/app/session/${token}`);
       } else {
-        setSessionUrl(url);
+        setSessionUrl(completeUrl);
         setStep("qr-desktop");
       }
     } catch {
-      setError("Terjadi kesalahan. Periksa koneksi internet kamu.");
+      setError("Something went wrong. Check your internet connection.");
       setStep("modal");
     }
   }
@@ -101,10 +103,9 @@ export default function StartShoppingButton({ variants, packSlug, packTitle }: P
     <>
       <button
         onClick={() => setStep("modal")}
-        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-colors focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
       >
-        <span>🛒</span>
-        Mulai Belanja
+        Start Shopping
       </button>
 
       {/* Modal */}
@@ -113,50 +114,73 @@ export default function StartShoppingButton({ variants, packSlug, packTitle }: P
           role="dialog"
           aria-modal="true"
           aria-labelledby="start-modal-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={(e) => { if (e.target === e.currentTarget && step !== "loading") setStep("idle"); }}
         >
-          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => { if (step !== "loading") setStep("idle"); }}
-          />
+            className="relative w-full rounded-t-3xl px-6 pt-4 pb-10 flex flex-col gap-5"
+            style={{ background: "var(--card)" }}
+          >
+            <div
+              className="mx-auto w-10 h-1 rounded-full mb-2"
+              style={{ background: "var(--border)" }}
+            />
 
-          <div className="relative w-full sm:max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl p-6 shadow-xl">
-            <h2 id="start-modal-title" className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
-              Mulai Belanja
+            <h2 id="start-modal-title" className="text-2xl text-left font-bold" style={{ color: "var(--foreground)" }}>
+              Start Shopping
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-              Masukkan namamu untuk memulai sesi belanja dari pack ini.
-            </p>
 
             {/* Variant selector — only show if more than one */}
             {variants.length > 1 && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Pilih Varian
-                </label>
-                <select
-                  value={selectedVariantId}
-                  onChange={(e) => setSelectedVariantId(e.target.value)}
-                  disabled={step === "loading"}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
+              <div>
+                <label
+                  htmlFor="variant-select"
+                  className="text-xs text-left font-semibold uppercase tracking-widest mb-2 block"
+                  style={{ color: "var(--muted)" }}
                 >
-                  {variants.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name} ({v.items.length} item)
-                    </option>
-                  ))}
-                </select>
+                  Choose Variant
+                </label>
+                <div className="relative">
+                  <select
+                    id="variant-select"
+                    value={selectedVariantId}
+                    onChange={(e) => setSelectedVariantId(e.target.value)}
+                    disabled={step === "loading"}
+                    className="w-full appearance-none px-4 py-3 pr-10 rounded-xl text-base focus:outline-none disabled:opacity-50"
+                    style={{
+                      background: "var(--background)",
+                      border: "1px solid var(--border)",
+                      color: "var(--foreground)",
+                    }}
+                  >
+                    {variants.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.name} ({v.items.length} items)
+                      </option>
+                    ))}
+                  </select>
+                  <svg
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 size-4 shrink-0"
+                    style={{ color: "var(--muted)" }}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                  </svg>
+                </div>
               </div>
             )}
 
             {/* Name input */}
-            <div className="mb-4">
+            <div>
               <label
                 htmlFor="participant-name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                className="text-xs text-left font-semibold uppercase tracking-widest mb-2 block"
+                style={{ color: "var(--muted)" }}
               >
-                Nama kamu
+                Your Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="participant-name"
@@ -166,40 +190,48 @@ export default function StartShoppingButton({ variants, packSlug, packTitle }: P
                 onChange={(e) => { setName(e.target.value); setError(""); }}
                 onKeyDown={(e) => { if (e.key === "Enter") handleStart(); }}
                 maxLength={26}
-                placeholder="mis. Budi"
+                placeholder="e.g. Alex"
                 disabled={step === "loading"}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
+                className="w-full px-4 py-3 rounded-xl text-base focus:outline-none disabled:opacity-50"
+                style={{
+                  background: "var(--background)",
+                  border: "1px solid var(--border)",
+                  color: "var(--foreground)",
+                }}
                 aria-describedby={error ? "name-error" : undefined}
               />
               {error && (
-                <p id="name-error" className="mt-1.5 text-xs text-red-600 dark:text-red-400" role="alert">
+                <p id="name-error" className="mt-1.5 text-xs text-red-500" role="alert">
                   {error}
                 </p>
               )}
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setStep("idle")}
                 disabled={step === "loading"}
-                className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                aria-label="Close"
+                className="size-14 rounded-xl font-semibold text-base transition flex items-center justify-center disabled:opacity-50"
+                style={{ background: "var(--background)", color: "var(--foreground)" }}
               >
-                Batal
+                <CloseIcon fill="var(--foreground)" />
               </button>
               <button
                 type="button"
                 onClick={handleStart}
                 disabled={step === "loading"}
-                className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full h-14 flex items-center justify-center rounded-xl text-white font-semibold text-lg transition disabled:opacity-50 gap-2"
+                style={{ background: "var(--brand)" }}
               >
                 {step === "loading" ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Membuat sesi…
+                    Creating session…
                   </>
                 ) : (
-                  "Mulai"
+                  "Start"
                 )}
               </button>
             </div>
@@ -239,32 +271,33 @@ function DesktopQRView({
       className="fixed inset-0 z-50 flex items-center justify-center"
     >
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
-          Scan dengan ponselmu
+      <div className="relative bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center">
+        <h2 className="text-xl font-bold text-gray-900 mb-1">
+          Scan with your phone
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          Sesi <span className="font-medium text-gray-700 dark:text-gray-300">{packTitle}</span> sudah dibuat.
-          Scan QR di bawah untuk melanjutkan di ponsel.
+        <p className="text-sm text-gray-500 mb-6">
+          Your <span className="font-medium text-gray-700">{packTitle}</span> session is ready.
+          Scan the QR code below to continue on your phone.
         </p>
 
         <div className="flex justify-center mb-6">
           {QRCodeComponent ? (
             <QRCodeComponent value={url} size={200} />
           ) : (
-            <div className="w-[200px] h-[200px] bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center">
+            <div className="size-50 bg-gray-100 rounded-xl flex items-center justify-center">
               <span className="text-xs text-gray-400">Loading QR…</span>
             </div>
           )}
         </div>
 
-        <p className="text-xs text-gray-400 dark:text-gray-500 break-all mb-5">{url}</p>
+        <p className="text-xs text-gray-400 break-all mb-5">{url}</p>
 
         <button
           onClick={onClose}
-          className="w-full py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="w-full py-2.5 rounded-xl border border-gray-300 text-base font-medium hover:bg-gray-50 transition-colors text-white"
+          style={{ background: 'var(--brand)'}}
         >
-          Tutup
+          Close
         </button>
       </div>
     </div>

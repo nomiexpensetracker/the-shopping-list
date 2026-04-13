@@ -17,9 +17,8 @@ import CollectModal from "@/components/CollectModal";
 import EditItemModal from "@/components/EditItemModal";
 import UpdateSessionModal from "@/components/UpdateSessionModal";
 import ParticipantToast from "@/components/ParticipantToast";
-import BottomNavbar from "@/components/BottomNavbar";
 import EndSessionModal from "@/components/EndSessionModal";
-import { CartIcon } from "@/components/icons";
+import { CartIcon, AddIcon } from "@/components/icons";
 
 import { formatRupiah } from "@/lib/utils";
 import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
@@ -240,11 +239,13 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
         <Header
           session={session.data}
           syncStatus={syncStatus}
+          onShare={() => setShowInvite(true)}
+          onEnd={() => setShowEndModal(true)}
         />
       )}
 
       <main
-        className="min-h-dvh flex flex-col relative px-4 py-6 gap-6 pb-28"
+        className="min-h-dvh flex flex-col relative px-4 py-6 gap-6 pb-40"
         style={{
           background: "var(--background)",
         }}
@@ -342,26 +343,29 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           </div>
         )}
 
-        {/* Floating Action Button — receipt */}
+        {/* Floating Action Button — receipt (cart) */}
         {isUserHost && collectedItems.length > 0 && (
           <button
             id="fab-cart-action-button"
-            aria-label="Add item with details"
-            className="fixed bottom-24 right-6 size-14 rounded-full flex items-center justify-center text-2xl font-bold shadow"
+            aria-label="View receipt"
+            className="fixed bottom-28 right-6 size-14 rounded-full flex items-center justify-center shadow"
             style={{ background: "var(--brand-light)" }}
             onClick={() => router.push(`/app/session/${token}/receipt`)}
           >
             <CartIcon fill="var(--brand-dark)" />
           </button>
         )}
-      </main>
 
-      <BottomNavbar
-        variant="session"
-        onShare={() => setShowInvite(true)}
-        onAdd={() => setEditTarget("new")}
-        onEnd={() => setShowEndModal(true)}
-      />
+        {/* Floating Action Button — add item */}
+        <button
+          aria-label="Add item"
+          className="fixed bottom-8 right-6 size-14 rounded-full flex items-center justify-center shadow-lg"
+          style={{ background: "var(--brand)" }}
+          onClick={() => setEditTarget("new")}
+        >
+          <AddIcon fill="#ffffff" />
+        </button>
+      </main>
 
       {/* Modals */}
       {collectTarget && (

@@ -240,7 +240,7 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
             className="text-[10px] uppercase font-semibold tracking-widest"
             style={{ color: "var(--muted)" }}
           >
-            ← My List
+            My List
           </span>
         </Link>
         <div className="flex items-center gap-2">

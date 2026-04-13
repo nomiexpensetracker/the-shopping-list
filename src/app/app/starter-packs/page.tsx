@@ -7,14 +7,14 @@ import StarterPacksTopBar from "@/components/StarterPacksTopBar";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Starter Packs — Daftar Belanja Siap Pakai | The Shopping List",
+  title: "Starter Packs — Ready-Made Shopping Lists | The Shopping List",
   description:
-    "Pilih dari koleksi daftar belanja siap pakai. Dari rendang hingga acara BBQ — mulai belanja dalam hitungan detik.",
+    "Choose from a collection of ready-made shopping lists. From rendang to BBQ — start shopping in seconds.",
   robots: { index: true, follow: true },
   openGraph: {
-    title: "Starter Packs — Daftar Belanja Siap Pakai",
+    title: "Starter Packs — Ready-Made Shopping Lists",
     description:
-      "Pilih dari koleksi daftar belanja siap pakai. Dari rendang hingga acara BBQ — mulai belanja dalam hitungan detik.",
+      "Choose from a collection of ready-made shopping lists. From rendang to BBQ — start shopping in seconds.",
     url: "https://the-shopping-list-eight.vercel.app/app/starter-packs",
     siteName: "The Shopping List",
     type: "website",
@@ -22,15 +22,15 @@ export const metadata: Metadata = {
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  food: "Makanan",
-  party: "Pesta",
+  food: "Food",
+  party: "Party",
   outdoor: "Outdoor",
 };
 
 const DIFFICULTY_LABELS: Record<string, string> = {
-  easy: "Mudah",
-  medium: "Sedang",
-  hard: "Sulit",
+  easy: "Easy",
+  medium: "Medium",
+  hard: "Hard",
 };
 
 async function fetchPacks(): Promise<StarterPack[]> {
@@ -60,18 +60,11 @@ export default async function StarterPacksPage() {
       {/* Page header */}
       <div style={{ borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-4xl mx-auto px-6 py-8">
-          <nav className="mb-6 text-sm text-muted">
-            <Link href="/" className="text-muted hover:text-foreground transition-colors">
-              Beranda
-            </Link>
-            <span className="mx-2">/</span>
-            <span className="text-foreground">Starter Packs</span>
-          </nav>
           <h1 className="text-3xl font-bold mb-3 text-foreground">
             Starter Packs
           </h1>
           <p className="text-lg max-w-2xl text-muted">
-            Daftar belanja siap pakai untuk berbagai kebutuhan. Tinggal pilih, masukkan nama, dan mulai belanja.
+            Ready-made shopping lists for every occasion. Just pick one, enter your name, and start shopping.
           </p>
         </div>
       </div>
@@ -79,7 +72,7 @@ export default async function StarterPacksPage() {
       <div className="max-w-4xl mx-auto px-6 py-10 space-y-12">
         {packs.length === 0 && (
           <p className="text-center text-muted py-20">
-            Belum ada starter pack tersedia.
+            No starter packs available yet.
           </p>
         )}
 
@@ -87,7 +80,7 @@ export default async function StarterPacksPage() {
         {featured.length > 0 && (
           <section>
             <h2 className="text-lg font-semibold text-muted mb-4">
-              Pilihan Terpopuler
+              Featured
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {featured.map((pack) => (
@@ -101,7 +94,7 @@ export default async function StarterPacksPage() {
         {rest.length > 0 && (
           <section>
             <h2 className="text-lg font-semibold text-muted mb-4">
-              Semua Pack
+              All Packs
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {rest.map((pack) => (
@@ -136,7 +129,7 @@ function PackCard({ pack, featured = false }: { pack: StarterPack; featured?: bo
             className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
             style={{ background: "var(--brand)", color: "#ffffff" }}
           >
-            Populer
+            Popular
           </span>
         )}
       </div>
