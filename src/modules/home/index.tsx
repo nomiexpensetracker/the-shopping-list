@@ -21,8 +21,6 @@ export default function HomeModule() {
     openNewListModal,
     closeNewListModal,
     handleCreateList,
-    showQuickShop,
-    toggleQuickShop,
     quickShopName,
     setQuickShopName,
     quickShopTitle,
@@ -58,10 +56,14 @@ export default function HomeModule() {
             <ThemeToggle />
           </div>
 
-          <MyListsSection
-            myLists={myLists}
-            onNavigateToList={navigateToList}
-            onOpenNewListModal={openNewListModal}
+          <QuickShopSection
+            name={quickShopName}
+            setName={setQuickShopName}
+            title={quickShopTitle}
+            setTitle={setQuickShopTitle}
+            loading={quickShopLoading}
+            error={quickShopError}
+            onSubmit={handleQuickShopSubmit}
           />
 
           {/* Divider */}
@@ -76,16 +78,10 @@ export default function HomeModule() {
             <span className="flex-1 h-px" style={{ background: "var(--border)" }} />
           </div>
 
-          <QuickShopSection
-            showQuickShop={showQuickShop}
-            onToggle={toggleQuickShop}
-            name={quickShopName}
-            setName={setQuickShopName}
-            title={quickShopTitle}
-            setTitle={setQuickShopTitle}
-            loading={quickShopLoading}
-            error={quickShopError}
-            onSubmit={handleQuickShopSubmit}
+          <MyListsSection
+            myLists={myLists}
+            onNavigateToList={navigateToList}
+            onOpenNewListModal={openNewListModal}
           />
         </div>
       </main>

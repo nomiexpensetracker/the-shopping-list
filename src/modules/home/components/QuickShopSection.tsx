@@ -1,8 +1,6 @@
 import Image from "next/image";
 
 interface QuickShopSectionProps {
-  showQuickShop: boolean;
-  onToggle: () => void;
   name: string;
   setName: (v: string) => void;
   title: string;
@@ -13,8 +11,6 @@ interface QuickShopSectionProps {
 }
 
 export default function QuickShopSection({
-  showQuickShop,
-  onToggle,
   name,
   setName,
   title,
@@ -25,29 +21,20 @@ export default function QuickShopSection({
 }: QuickShopSectionProps) {
   return (
     <section className="flex flex-col gap-3">
-      <button
-        onClick={onToggle}
-        className="flex items-center justify-between w-full"
+      <p
+        className="text-xs font-bold uppercase tracking-widest"
+        style={{ color: "var(--muted)" }}
       >
-        <p
-          className="text-xs font-bold uppercase tracking-widest"
-          style={{ color: "var(--muted)" }}
-        >
-          Quick Shop
-        </p>
-        <span className="text-xs" style={{ color: "var(--muted)" }}>
-          {showQuickShop ? "▲ hide" : "▼ show"}
-        </span>
-      </button>
+        Quick Shop
+      </p>
 
-      {showQuickShop && (
-        <div
-          className="rounded-2xl px-5 py-5 flex flex-col gap-4"
-          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
-        >
-          <p className="text-sm" style={{ color: "var(--muted)" }}>
-            Start a one-off shopping session without saving a list.
-          </p>
+      <div
+        className="rounded-2xl px-5 py-5 flex flex-col gap-4"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+      >
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          Start a one-off shopping session without saving a list.
+        </p>
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <label
@@ -114,8 +101,7 @@ export default function QuickShopSection({
               )}
             </button>
           </form>
-        </div>
-      )}
+      </div>
     </section>
   );
 }

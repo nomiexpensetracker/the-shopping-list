@@ -1,3 +1,4 @@
+import { ArrowIcon } from "@/components/icons";
 import type { ListRegistryEntry } from "@/types/dto";
 
 interface MyListsSectionProps {
@@ -22,7 +23,7 @@ export default function MyListsSection({
         </p>
         <button
           onClick={onOpenNewListModal}
-          className="px-3 py-1.5 rounded-lg text-xs font-bold text-white"
+          className="px-3 py-1.5 rounded-lg text-sm font-bold text-white"
           style={{ background: "var(--brand)" }}
         >
           + New List
@@ -42,13 +43,19 @@ export default function MyListsSection({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          {myLists.map((list) => (
+        <div
+          className="flex flex-col rounded-2xl overflow-hidden"
+          style={{ border: "1px solid var(--border)" }}
+        >
+          {myLists.map((list, idx) => (
             <button
               key={list.id}
               onClick={() => onNavigateToList(list.id)}
-              className="w-full flex items-center justify-between px-4 py-4 rounded-2xl text-left"
-              style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+              className="w-full flex items-center justify-between px-4 py-4 text-left"
+              style={{
+                background: "var(--card)",
+                borderBottom: idx < myLists.length - 1 ? "1px solid var(--border)" : "none",
+              }}
             >
               <span
                 className="font-semibold text-base truncate"
@@ -56,9 +63,7 @@ export default function MyListsSection({
               >
                 {list.name}
               </span>
-              <span className="text-lg shrink-0 ml-2" style={{ color: "var(--brand)" }}>
-                →
-              </span>
+              <ArrowIcon fill="var(--foreground)" />
             </button>
           ))}
         </div>

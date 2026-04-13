@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import { AddIcon, RemoveIcon } from './icons';
+import { usePathname } from 'next/navigation';
 
 interface QuantityEditorProps {
   qty: number;
