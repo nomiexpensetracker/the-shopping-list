@@ -21,18 +21,6 @@ export const metadata: Metadata = {
   },
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  food: "Food",
-  party: "Party",
-  outdoor: "Outdoor",
-};
-
-const DIFFICULTY_LABELS: Record<string, string> = {
-  easy: "Easy",
-  medium: "Medium",
-  hard: "Hard",
-};
-
 async function fetchPacks(): Promise<StarterPack[]> {
   try {
     const rows = await sql`
@@ -78,13 +66,16 @@ export default async function StarterPacksPage() {
 
         {/* Featured */}
         {featured.length > 0 && (
-          <section>
-            <h2 className="text-lg font-semibold text-muted mb-4">
+          <section className="flex flex-col gap-3">
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
               Featured
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {featured.map((pack) => (
-                <PackCard key={pack.id} pack={pack} featured />
+            </p>
+            <div
+              className="flex flex-col rounded-2xl overflow-hidden"
+              style={{ border: "1px solid var(--border)" }}
+            >
+              {featured.map((pack, idx) => (
+                <PackCard key={pack.id} pack={pack} featured isLast={idx === featured.length - 1} />
               ))}
             </div>
           </section>
@@ -92,13 +83,16 @@ export default async function StarterPacksPage() {
 
         {/* All others */}
         {rest.length > 0 && (
-          <section>
-            <h2 className="text-lg font-semibold text-muted mb-4">
+          <section className="flex flex-col gap-3">
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
               All Packs
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {rest.map((pack) => (
-                <PackCard key={pack.id} pack={pack} />
+            </p>
+            <div
+              className="flex flex-col rounded-2xl overflow-hidden"
+              style={{ border: "1px solid var(--border)" }}
+            >
+              {rest.map((pack, idx) => (
+                <PackCard key={pack.id} pack={pack} isLast={idx === rest.length - 1} />
               ))}
             </div>
           </section>
@@ -108,64 +102,47 @@ export default async function StarterPacksPage() {
   );
 }
 
-function PackCard({ pack, featured = false }: { pack: StarterPack; featured?: boolean }) {
+function PackCard({ pack, featured = false, isLast = false }: { pack: StarterPack; featured?: boolean; isLast?: boolean }) {
   return (
     <Link
       href={`/app/starter-packs/${pack.slug}`}
-      className="group block rounded-2xl border p-5 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
+      className="w-full flex items-center justify-between px-4 py-4 text-left transition active:opacity-70"
       style={{
-        background: featured ? "var(--brand-light)" : "var(--card)",
-        borderColor: featured ? "var(--brand)" : "var(--border)",
-        borderWidth: 1,
-        borderStyle: "solid",
+        background: "var(--card)",
+        borderBottom: isLast ? "none" : "1px solid var(--border)",
       }}
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <h3 className="font-semibold text-base text-foreground group-hover:text-brand transition-colors">
-          {pack.title}
-        </h3>
-        {featured && (
-          <span
-            className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
-            style={{ background: "var(--brand)", color: "#ffffff" }}
-          >
-            Popular
+      <div className="flex flex-col min-w-0 gap-0.5 mr-3">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-base truncate" style={{ color: "var(--foreground)" }}>
+            {pack.title}
+          </span>
+          {featured && (
+            <span
+              className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
+              style={{ background: "var(--brand)", color: "#ffffff" }}
+            >
+              Popular
+            </span>
+          )}
+        </div>
+        {pack.description && (
+          <span className="text-sm truncate" style={{ color: "var(--muted)" }}>
+            {pack.description}
           </span>
         )}
       </div>
-
-      {pack.description && (
-        <p className="text-sm text-muted line-clamp-2 mb-3">
-          {pack.description}
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-2">
-        {pack.category && (
-          <span
-            className="text-xs px-2 py-0.5 rounded-full"
-            style={{ background: "var(--border)", color: "var(--muted)" }}
-          >
-            {CATEGORY_LABELS[pack.category] ?? pack.category}
-          </span>
-        )}
-        {pack.cuisine && (
-          <span
-            className="text-xs px-2 py-0.5 rounded-full"
-            style={{ background: "var(--border)", color: "var(--muted)" }}
-          >
-            {pack.cuisine}
-          </span>
-        )}
-        {pack.difficulty && (
-          <span
-            className="text-xs px-2 py-0.5 rounded-full"
-            style={{ background: "var(--border)", color: "var(--muted)" }}
-          >
-            {DIFFICULTY_LABELS[pack.difficulty] ?? pack.difficulty}
-          </span>
-        )}
-      </div>
+      <svg
+        className="shrink-0"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path d="M9 18L15 12L9 6" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </Link>
   );
 }

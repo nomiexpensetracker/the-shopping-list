@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { ListRegistryEntry } from "@/types/dto";
+import { TrashIcon } from "@/components/icons";
 
 interface MyListsSectionProps {
   myLists: ListRegistryEntry[];
@@ -71,11 +72,9 @@ function ListRowMenu({
               onDelete(listId);
             }}
             className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-left transition active:opacity-70"
-            style={{ color: "#ef4444" }}
+            style={{ color: "var(--foreground)" }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <TrashIcon fill="var(--foreground)" />
             Delete list
           </button>
         </div>

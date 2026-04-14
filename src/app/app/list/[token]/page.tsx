@@ -10,7 +10,7 @@ import MobileGate from "@/components/MobileGate";
 import ThemeToggle from "@/components/ThemeToggle";
 import ItemCard from "@/components/ItemCard";
 import EditItemModal from "@/components/EditItemModal";
-import { AddIcon } from "@/components/icons";
+import { AddIcon, CartIcon } from "@/components/icons";
 import { CommonResponse, GetListResponse, PostSessionResponse } from "@/types/dto";
 import type { Item, ListItem } from "@/types/dao";
 import {
@@ -314,7 +314,17 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
         )}
       </main>
 
-      {/* FAB — Add item */}
+      {/* Floating Action Button — receipt (cart) */}
+      <button
+        id="fab-cart-action-button"
+        aria-label="View receipt"
+        className="fixed bottom-24 right-6 size-14 rounded-full flex items-center justify-center shadow"
+        style={{ background: "var(--brand-light)" }}
+        onClick={() => setShowShopModal(true)}
+      >
+        <CartIcon fill="var(--brand-dark)" />
+      </button>
+      {/* Floating Action Button — add item */}
       <button
         aria-label="Add item"
         className="fixed bottom-6 right-6 size-14 rounded-full flex items-center justify-center shadow-lg"
@@ -323,17 +333,6 @@ export default function ListPage({ params }: { params: Promise<{ token: string }
       >
         <AddIcon />
       </button>
-
-      {/* Start Shopping FAB */}
-      {activeItems.length > 0 && (
-        <button
-          className="fixed bottom-6 left-6 px-5 py-4 rounded-full font-bold text-sm shadow-lg"
-          style={{ background: "var(--brand-light)", color: "var(--brand-dark)" }}
-          onClick={() => setShowShopModal(true)}
-        >
-          Start Shopping
-        </button>
-      )}
 
       {/* Add item modal */}
       {showAddModal && (

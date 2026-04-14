@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 interface QuickShopSectionProps {
   name: string;
   setName: (v: string) => void;
@@ -92,11 +90,10 @@ export default function QuickShopSection({
               style={{ background: "var(--brand)" }}
             >
               {loading ? (
-                "Creating your session…"
+                "Creating shopping session…"
               ) : (
                 <span className="flex gap-2">
-                  Shop List Now{" "}
-                  <Image src="/icons/arrow.svg" alt="Arrow" width={16} height={16} />
+                  Quick Shop
                 </span>
               )}
             </button>

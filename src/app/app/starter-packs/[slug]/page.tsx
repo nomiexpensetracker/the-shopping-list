@@ -1,11 +1,13 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+
 import { sql } from "@/lib/db";
-import type { StarterPackDetailResponse } from "@/types/dto";
 import type { StarterPackVariantItem } from "@/types/dao";
-import StartShoppingButton from "@/components/StartShoppingButton";
+import type { StarterPackDetailResponse } from "@/types/dto";
+
+import AddToMyListsButton from "@/components/AddToMyListsButton";
 import StarterPacksTopBar from "@/components/StarterPacksTopBar";
+import StartShoppingButton from "@/components/StartShoppingButton";
 
 export const dynamic = "force-dynamic";
 
@@ -153,46 +155,20 @@ export default async function StarterPackDetailPage(
 
         {/* Pack header */}
         <div style={{ borderBottom: "1px solid var(--border)" }}>
-          <div className="max-w-3xl mx-auto px-6 py-10">
-            <nav className="mb-5 text-sm text-muted">
-              <Link href="/" className="text-muted hover:text-foreground transition-colors">
-                Home
-              </Link>
-              <span className="mx-2">/</span>
-              <Link href="/app/starter-packs" className="text-muted hover:text-foreground transition-colors">
-                Starter Packs
-              </Link>
-              <span className="mx-2">/</span>
-              <span className="text-foreground">{pack.title}</span>
-            </nav>
-
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {pack.category && <Tag>{pack.category}</Tag>}
-              {pack.cuisine && <Tag>{pack.cuisine}</Tag>}
-              {pack.difficulty && <Tag>{pack.difficulty}</Tag>}
-            </div>
-
+          <div className="max-w-3xl mx-auto p-6">
             <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight text-foreground">
               {pack.title}
             </h1>
 
             {pack.description && (
-              <p className="text-lg leading-relaxed mb-6 max-w-2xl text-muted">
+              <p className="text-lg leading-relaxed max-w-2xl text-muted">
                 {pack.description}
               </p>
             )}
-
-            {/* Primary CTA — above fold */}
-            <StartShoppingButton
-              variants={pack.variants}
-              packSlug={pack.slug}
-              packTitle={pack.title}
-            />
           </div>
         </div>
 
-        <div className="max-w-3xl mx-auto px-6 py-10 space-y-12">
+        <div className="max-w-3xl mx-auto p-6 space-y-12">
           {/* Ingredients — SEO critical section */}
           <section>
             <h2 className="text-xl font-bold mb-5 text-foreground">
@@ -257,22 +233,18 @@ export default async function StarterPackDetailPage(
             <p className="text-sm text-muted mb-5">
               Create a shopping session from this pack and invite friends or family.
             </p>
-            <StartShoppingButton
-              variants={pack.variants}
-              packSlug={pack.slug}
-              packTitle={pack.title}
-            />
+            <div className="flex flex-col gap-2">
+              <StartShoppingButton
+                variants={pack.variants}
+                packSlug={pack.slug}
+                packTitle={pack.title}
+              />
+              <AddToMyListsButton
+                variants={pack.variants}
+                packTitle={pack.title}
+              />
+            </div>
           </section>
-
-          {/* Back link */}
-          <div>
-            <Link
-              href="/app/starter-packs"
-              className="text-sm text-brand hover:underline"
-            >
-              ← View all starter packs
-            </Link>
-          </div>
         </div>
       </div>
     </>
