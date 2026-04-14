@@ -20,8 +20,8 @@ import ParticipantToast from "@/components/ParticipantToast";
 import EndSessionModal from "@/components/EndSessionModal";
 import { CartIcon, AddIcon } from "@/components/icons";
 
-import { formatRupiah } from "@/lib/utils";
 import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
+import { useCurrency } from "@/components/CurrencyProvider";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -31,6 +31,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const showUpdateModal = searchParams.get("with-template") === "true";
+  const { formatAmount } = useCurrency();
 
   const [collectTarget, setCollectTarget] = useState<Item | null>(null);
   const [editTarget, setEditTarget] = useState<Item | null | "new">(null);
@@ -276,7 +277,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
                   Total Price
                 </p>
                 <p className="text-2xl uppercase font-extrabold tracking-widest" style={{ color: "var(--collected-text)" }}>
-                  {formatRupiah(parseInt(summary?.data?.collected_items_total_price ?? String(predictedTotal)))}
+                  {formatAmount(parseFloat(summary?.data?.collected_items_total_price ?? String(predictedTotal)))}
                 </p>
               </div>
             </div>

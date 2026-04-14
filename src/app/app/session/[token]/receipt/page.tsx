@@ -9,13 +9,15 @@ import { CloseIcon } from "@/components/icons";
 import { CommonResponse } from "@/types/dto";
 import { useReceiptExport } from "@/lib/hooks";
 import type { Receipt, Session } from "@/types/dao";
-import { formatLocaleData, formatRupiah } from "@/lib/utils";
+import { formatLocaleData } from "@/lib/utils";
+import { useCurrency } from "@/components/CurrencyProvider";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function ReceiptPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
   const router = useRouter();
+  const { formatAmount } = useCurrency();
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app';
 
@@ -179,7 +181,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
                 </span>
               </div>
               <span className="text-sm font-semibold text-right" style={{ color: "var(--foreground)" }}>
-                {item.price != null ? `${formatRupiah(item.price)}` : "—"}
+                {item.price != null ? `${formatAmount(item.price)}` : "—"}
               </span>
             </div>
           ))}
@@ -194,7 +196,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
             Total Amount
           </span>
           <span className="text-2xl font-black" style={{ color: "var(--brand)" }}>
-            {receipt?.data.total_price ? `${formatRupiah(parseInt(receipt.data.total_price))}` : "—"}
+            {receipt?.data.total_price ? `${formatAmount(parseFloat(receipt.data.total_price))}` : "—"}
           </span>
         </div>
 

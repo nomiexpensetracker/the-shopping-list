@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  getCurrencyForCountry,
+  getCurrencyForLocale,
+  getDisplayLocaleForCurrency,
+} from "@/lib/currency";
 
 // Mobile UA patterns — covers iOS Safari-class and Android Chromium-class browsers.
 const MOBILE_UA_PATTERNS = [
@@ -18,11 +23,27 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const ua = req.headers.get("user-agent") ?? "";
 
-  // ── Locale detection (all routes) ──────────────────────────────
-  // Detect preferred locale from Accept-Language and forward it as a
-  // response header so server components and API handlers can read it.
+  // ── Locale + currency detection (all routes) ───────────────────
+  // Priority: IP country (x-vercel-ip-country) > Accept-Language > USD
+  //
+  // x-vercel-ip-country is injected free by Vercel's edge for every request.
+  // This ensures an Indonesian user whose browser is set to English still sees
+  // IDR rather than USD.
+  const ipCountry = req.headers.get("x-vercel-ip-country") ?? "";
   const acceptLanguage = req.headers.get("accept-language") ?? "";
-  const locale = acceptLanguage.includes("id") ? "id-ID" : "en-US";
+
+  let currency: string;
+  let locale: string;
+
+  if (ipCountry) {
+    currency = getCurrencyForCountry(ipCountry);
+    locale = getDisplayLocaleForCurrency(currency);
+  } else {
+    // Fallback: derive from the first language tag in Accept-Language
+    const primaryLocale = acceptLanguage.split(",")[0]?.trim().split(";")[0] ?? "en-US";
+    currency = getCurrencyForLocale(primaryLocale);
+    locale = getDisplayLocaleForCurrency(currency);
+  }
 
   // ── Mobile gate (session routes only) ──────────────────────────
   // Only gate the in-session app routes. API routes, public pages,
@@ -41,6 +62,7 @@ export function middleware(req: NextRequest) {
 
   const res = NextResponse.next();
   res.headers.set("x-locale", locale);
+  res.headers.set("x-currency", currency);
   return res;
 }
 

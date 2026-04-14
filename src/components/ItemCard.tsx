@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 import type { Item, Participant } from "@/types/dao";
-import { formatRupiah, getUserColor } from "@/lib/utils";
+import { getUserColor } from "@/lib/utils";
+import { useCurrency } from "@/components/CurrencyProvider";
 
 import { AddIcon, ChevronIcon, RemoveIcon, TrashIcon, UploadIcon } from "./icons";
 import { useDebounce } from "@/lib/hooks";
@@ -29,6 +30,7 @@ const ItemCard = ({
   participants,
   defaultExpanded = true,
 }: Props) => {
+  const { formatAmount } = useCurrency();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
 
@@ -124,7 +126,7 @@ const ItemCard = ({
                   )}
                   {item.state === 'collected' && item.price != null && item.price > 0 && (
                     <p className="text-sm font-medium" style={{ color: "var(--brand)" }}>
-                      {formatRupiah(item.price)}
+                      {formatAmount(item.price)}
                     </p>
                   )}
                 </div>

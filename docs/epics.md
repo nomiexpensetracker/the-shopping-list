@@ -6,7 +6,7 @@ stepsCompleted:
   - step-04-implementation-sync
 inputDocuments:
   - prd.md
-lastSyncedWithCode: 2026-04-13
+lastSyncedWithCode: 2026-04-14
 ---
 
 # the-shopping-list-bmad — Epic Breakdown
@@ -434,7 +434,7 @@ So that the group can manage spend before checkout.
 **And** the total is displayed in the session stats bar
 **And** items without a price contribute zero to the total (not an error)
 
-### Story 3.4: Locale-Aware Currency Display 🔲 *(Planned)*
+### Story 3.4: Locale-Aware Currency Display ✅
 
 As a shopper,
 I want prices displayed in my local currency format,
@@ -444,9 +444,17 @@ So that the numbers are immediately readable in my context.
 
 **Given** I am using the app in any region
 **When** a price value is displayed
-**Then** the currency symbol and number format match my detected locale (from network request / Accept-Language header)
+**Then** the currency symbol and number format match my detected region (from Vercel `x-vercel-ip-country` IP geolocation, falling back to `Accept-Language` header, then USD)
 **And** the stored price in the database remains a plain numeric value (formatting is display-only)
-**And** the system falls back to a sensible default (e.g., USD) if locale cannot be detected
+**And** the system falls back to USD if neither IP country nor locale can be resolved
+
+**Implementation notes:**
+- `src/lib/currency.ts` — `COUNTRY_CURRENCY_MAP` (ISO 3166-1 → ISO 4217, 30+ countries), `LOCALE_CURRENCY_MAP` (BCP 47 fallback), `formatAmount()`, `getCurrencySymbol()`
+- `src/middleware.ts` — reads `x-vercel-ip-country` (IP-based, primary signal) then `Accept-Language`; sets `x-locale` + `x-currency` response headers
+- `src/components/CurrencyProvider.tsx` — React context + `useCurrency()` hook; server-resolved values passed as props from layout
+- `src/app/app/layout.tsx` — server component reads middleware headers, wraps children with `<CurrencyProvider>`
+- Call sites updated: `CollectModal`, `ItemCard`, session stats bar, receipt page
+- `parseInt` → `parseFloat` fix applied at total display sites (was silently truncating decimal cents)
 
 ---
 

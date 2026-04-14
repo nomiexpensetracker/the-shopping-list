@@ -107,7 +107,6 @@ Build a mobile-screen-only web app for anonymous group shopping that prevents tw
 
 ### Growth Features (Post-MVP)
 
-- Locale-aware currency display based on network/IP detection *(next focus)*
 - TBD based on MVP learnings
 
 ### Vision (Future)
@@ -369,9 +368,9 @@ The first release should establish a durable product foundation: reliable anonym
 - Light/dark mode (localStorage-persisted)
 - Analytics: Google Analytics, Vercel Analytics, Vercel Speed Insights
 
-### Phase 2 — Planned / Next Focus
+### Phase 2 — Implemented
 
-- **Locale-aware currency** — detect user locale from network request; format prices using `Intl.NumberFormat` with the detected locale/currency. Database value stays as plain numeric.
+- **Locale-aware currency** ✅ — IP geolocation via Vercel `x-vercel-ip-country` header (primary); falls back to `Accept-Language`; then USD. Currency and locale resolved server-side in middleware and forwarded to a React context (`CurrencyProvider`). Database value stays as plain numeric. 30+ countries mapped.
 
 ### Phase 3 (Expansion)
 
@@ -549,11 +548,11 @@ This section tracks which requirements are implemented vs. pending. It is update
 | Input validation (server-side) | ✅ |
 | Session auto-delete (2-day TTL function) | ✅ |
 | Analytics (GA, Vercel Analytics, Speed Insights) | ✅ |
+| Locale-aware currency display | ✅ IP geolocation (`x-vercel-ip-country`) → currency; fallback: Accept-Language → USD. `CurrencyProvider` context. 30+ countries. |
 
 ### 🔲 Planned / In Progress
 
 | Area | Notes |
 |---|---|
-| Locale-aware currency display | Next focus. Currently hard-coded to IDR. Detect locale from network request; format display only. |
 | Formal WCAG compliance audit | Baseline a11y in place; formal target not yet set. |
 | Browser compatibility matrix (documented) | Implemented in code; not yet formally documented as a matrix. |

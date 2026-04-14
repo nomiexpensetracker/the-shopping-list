@@ -6,6 +6,7 @@ import type { Item } from "@/types/dao";
 
 import QuantityEditor from "./quantity-editor";
 import { CloseIcon } from "./icons";
+import { useCurrency } from "./CurrencyProvider";
 
 interface Props {
   item: Item;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function CollectModal({ item, onDone, onClose }: Props) {
+  const { currencySymbol } = useCurrency();
   const [qty, setQty] = useState(item.quantity);
   const [priceStr, setPriceStr] = useState(item.price != null ? String(item.price) : "");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -81,7 +83,7 @@ export default function CollectModal({ item, onDone, onClose }: Props) {
             }}
           >
             <span className="text-lg font-semibold mr-2" style={{ color: "var(--muted)" }}>
-              Rp
+              {currencySymbol}
             </span>
             <input
               ref={inputRef}
