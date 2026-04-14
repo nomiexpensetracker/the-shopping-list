@@ -15,6 +15,12 @@ export default function HomeModule() {
   const {
     myLists,
     navigateToList,
+    deleteConfirmId,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    deletingList,
+    deleteListError,
+    handleDeleteList,
     showNewListModal,
     newListName,
     setNewListName,
@@ -116,6 +122,12 @@ export default function HomeModule() {
           <MyListsSection
             myLists={myLists}
             onNavigateToList={navigateToList}
+            onDeleteList={handleDeleteList}
+            deleteConfirmId={deleteConfirmId}
+            onOpenDeleteConfirm={openDeleteConfirm}
+            onCloseDeleteConfirm={closeDeleteConfirm}
+            deletingList={deletingList}
+            deleteListError={deleteListError}
           />
         </div>
 

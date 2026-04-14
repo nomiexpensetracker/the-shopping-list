@@ -34,3 +34,11 @@ export async function apiCreateList(
 
   return data.data;
 }
+
+export async function apiDeleteList(id: string): Promise<void> {
+  const res = await fetch(`/api/lists/${id}`, { method: "DELETE" });
+  const data = await res.json() as { success: boolean; error?: string };
+  if (!res.ok || !data.success) {
+    throw new Error(data.error ?? "Failed to delete list. Please try again.");
+  }
+}

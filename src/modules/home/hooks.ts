@@ -3,10 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { getListsRegistry, addToListsRegistry } from "@/lib/lists";
+import { getListsRegistry, addToListsRegistry, removeFromListsRegistry } from "@/lib/lists";
 import { useMyListsState, useNewListModalState, useQuickShopState } from "./state";
 import { validateQuickShopForm, validateListName, findActiveSessionId, storeParticipantLocally } from "./logic";
-import { apiCreateSession, apiCreateList } from "./api";
+import { apiCreateSession, apiCreateList, apiDeleteList } from "./api";
 
 export function useHomeModule() {
   const router = useRouter();
@@ -95,10 +95,31 @@ export function useHomeModule() {
     newListModal.setNewListError("");
   }
 
+  async function handleDeleteList() {
+    if (!myListsState.deleteConfirmId) return;
+    myListsState.setDeletingList(true);
+    myListsState.setDeleteListError("");
+    try {
+      await apiDeleteList(myListsState.deleteConfirmId);
+      removeFromListsRegistry(myListsState.deleteConfirmId);
+      myListsState.setMyLists(getListsRegistry());
+      myListsState.setDeleteConfirmId(null);
+    } catch (err) {
+      myListsState.setDeleteListError(err instanceof Error ? err.message : "Something went wrong.");
+      myListsState.setDeletingList(false);
+    }
+  }
+
   return {
     // My Lists
     myLists: myListsState.myLists,
     navigateToList: (id: string) => router.push(`/app/list/${id}`),
+    deleteConfirmId: myListsState.deleteConfirmId,
+    openDeleteConfirm: (id: string) => { myListsState.setDeleteListError(""); myListsState.setDeleteConfirmId(id); },
+    closeDeleteConfirm: () => myListsState.setDeleteConfirmId(null),
+    deletingList: myListsState.deletingList,
+    deleteListError: myListsState.deleteListError,
+    handleDeleteList,
 
     // New List Modal
     showNewListModal: newListModal.showNewListModal,

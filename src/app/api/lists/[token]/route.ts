@@ -87,3 +87,27 @@ export async function PATCH(
 
   return NextResponse.json({ success: true });
 }
+
+// DELETE /api/lists/[token] — permanently delete list and its items
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ token: string }> }
+) {
+  const { token } = await params;
+
+  if (!isValidToken(token)) {
+    return NextResponse.json({ error: "Invalid list token" }, { status: 400 });
+  }
+
+  const result = await sql`
+    DELETE FROM lists
+    WHERE id = ${token}
+    RETURNING id
+  `;
+
+  if (result.length === 0) {
+    return NextResponse.json({ error: "List not found", success: false }, { status: 404 });
+  }
+
+  return NextResponse.json({ success: true });
+}

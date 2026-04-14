@@ -3,7 +3,10 @@ import type { ListRegistryEntry } from "@/types/dto";
 
 export function useMyListsState() {
   const [myLists, setMyLists] = useState<ListRegistryEntry[]>([]);
-  return { myLists, setMyLists };
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deletingList, setDeletingList] = useState(false);
+  const [deleteListError, setDeleteListError] = useState("");
+  return { myLists, setMyLists, deleteConfirmId, setDeleteConfirmId, deletingList, setDeletingList, deleteListError, setDeleteListError };
 }
 
 export function useNewListModalState() {
