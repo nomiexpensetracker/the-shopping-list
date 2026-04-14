@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { ListRegistryEntry } from "@/types/dto";
-import { TrashIcon } from "@/components/icons";
+import { TrashIcon, PencilIcon } from "@/components/icons";
 
 interface MyListsSectionProps {
   myLists: ListRegistryEntry[];
@@ -13,6 +13,7 @@ interface MyListsSectionProps {
   onCloseDeleteConfirm: () => void;
   deletingList: boolean;
   deleteListError: string;
+  onEditList: (id: string) => void;
 }
 
 function DotsMenuIcon({ fill = "currentColor" }: { fill?: string }) {
@@ -27,9 +28,11 @@ function DotsMenuIcon({ fill = "currentColor" }: { fill?: string }) {
 
 function ListRowMenu({
   listId,
+  onEdit,
   onDelete,
 }: {
   listId: string;
+  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -62,9 +65,21 @@ function ListRowMenu({
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-1 z-30 min-w-35 rounded-xl py-1 shadow-lg"
+          className="absolute right-0 top-full mt-1 z-60 min-w-40 rounded-xl py-1 shadow-lg"
           style={{ background: "var(--card)", border: "1px solid var(--border)" }}
         >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+              onEdit(listId);
+            }}
+            className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-left transition active:opacity-70"
+            style={{ color: "var(--foreground)" }}
+          >
+            <PencilIcon fill="var(--foreground)" />
+            Edit List
+          </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -74,8 +89,8 @@ function ListRowMenu({
             className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-left transition active:opacity-70"
             style={{ color: "var(--foreground)" }}
           >
-            <TrashIcon fill="var(--foreground)" />
-            Delete list
+            <TrashIcon fill="var(--danger)" />
+            Delete List
           </button>
         </div>
       )}
@@ -92,6 +107,7 @@ export default function MyListsSection({
   onCloseDeleteConfirm,
   deletingList,
   deleteListError,
+  onEditList,
 }: MyListsSectionProps) {
   const confirmName = myLists.find((l) => l.id === deleteConfirmId)?.name ?? "this list";
 
@@ -121,13 +137,13 @@ export default function MyListsSection({
           </div>
         ) : (
           <div
-            className="flex flex-col rounded-2xl overflow-hidden"
+            className="flex flex-col rounded-2xl"
             style={{ border: "1px solid var(--border)" }}
           >
             {myLists.map((list, idx) => (
               <div
                 key={list.id}
-                className="w-full flex items-center justify-between px-4 py-4"
+                className={`w-full flex items-center justify-between px-4 py-4${idx === 0 ? " rounded-t-2xl" : ""}${idx === myLists.length - 1 ? " rounded-b-2xl" : ""}`}
                 style={{
                   background: "var(--card)",
                   borderBottom: idx < myLists.length - 1 ? "1px solid var(--border)" : "none",
@@ -144,7 +160,7 @@ export default function MyListsSection({
                     {list.name}
                   </span>
                 </button>
-                <ListRowMenu listId={list.id} onDelete={onOpenDeleteConfirm} />
+                <ListRowMenu listId={list.id} onEdit={onEditList} onDelete={onOpenDeleteConfirm} />
               </div>
             ))}
           </div>

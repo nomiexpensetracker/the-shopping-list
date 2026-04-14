@@ -7,6 +7,9 @@ interface NewListModalProps {
   error: string;
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
+  modalTitle?: string;
+  submitLabel?: string;
+  savingLabel?: string;
 }
 
 export default function NewListModal({
@@ -16,6 +19,9 @@ export default function NewListModal({
   error,
   onSubmit,
   onClose,
+  modalTitle = "New List",
+  submitLabel = "Create List",
+  savingLabel = "Creating…",
 }: NewListModalProps) {
   return (
     <div
@@ -30,7 +36,7 @@ export default function NewListModal({
         style={{ background: "var(--card)" }}
       >
         <h2 className="text-lg font-extrabold" style={{ color: "var(--foreground)" }}>
-          New List
+          {modalTitle}
         </h2>
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
           <input
@@ -66,7 +72,7 @@ export default function NewListModal({
               className="w-full py-4 rounded-xl text-white font-bold text-base disabled:opacity-50"
               style={{ background: "var(--brand)" }}
             >
-              {creating ? "Creating…" : "Create List"}
+              {creating ? savingLabel : submitLabel}
             </button>
           </div>
         </form>

@@ -13,6 +13,7 @@
   --collected-text: #065f46;
   --quantity-bg: #f3ebf7;
   --main-bg: #ffffff;
+  --danger: #ef4444;
 }
 
 @theme inline {
@@ -21,6 +22,7 @@
   --color-brand: var(--brand);
   --color-brand-dark: var(--brand-dark);
   --color-brand-light: var(--brand-light);
+  --color-danger: var(--danger);
   --color-card: var(--card);
   --color-muted: var(--muted);
   --color-border: var(--border);
@@ -40,6 +42,7 @@
   --collected-text: #86efac;
   --quantity-bg: #1a2e1a;
   --main-bg: #0f1a13;
+  --danger: #ffffff;
 }
 
 * {

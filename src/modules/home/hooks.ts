@@ -3,16 +3,17 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { getListsRegistry, addToListsRegistry, removeFromListsRegistry } from "@/lib/lists";
-import { useMyListsState, useNewListModalState, useQuickShopState } from "./state";
+import { getListsRegistry, addToListsRegistry, removeFromListsRegistry, updateListInRegistry } from "@/lib/lists";
+import { useMyListsState, useNewListModalState, useQuickShopState, useEditListModalState } from "./state";
 import { validateQuickShopForm, validateListName, findActiveSessionId, storeParticipantLocally } from "./logic";
-import { apiCreateSession, apiCreateList, apiDeleteList } from "./api";
+import { apiCreateSession, apiCreateList, apiDeleteList, apiUpdateList } from "./api";
 
 export function useHomeModule() {
   const router = useRouter();
 
   const myListsState = useMyListsState();
   const newListModal = useNewListModalState();
+  const editListModal = useEditListModalState();
   const quickShop = useQuickShopState();
 
   // Load lists from localStorage on mount
@@ -95,6 +96,35 @@ export function useHomeModule() {
     newListModal.setNewListError("");
   }
 
+  function openEditModal(id: string) {
+    const list = myListsState.myLists.find((l) => l.id === id);
+    editListModal.setEditListId(id);
+    editListModal.setEditListName(list?.name ?? "");
+    editListModal.setEditListError("");
+    editListModal.setUpdatingList(false);
+  }
+
+  async function handleUpdateList(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editListModal.editListId) return;
+    const validationError = validateListName({ name: editListModal.editListName });
+    if (validationError) {
+      editListModal.setEditListError(validationError);
+      return;
+    }
+    editListModal.setUpdatingList(true);
+    editListModal.setEditListError("");
+    try {
+      await apiUpdateList(editListModal.editListId, editListModal.editListName.trim());
+      updateListInRegistry(editListModal.editListId, { name: editListModal.editListName.trim() });
+      myListsState.setMyLists(getListsRegistry());
+      editListModal.setEditListId(null);
+    } catch (err) {
+      editListModal.setEditListError(err instanceof Error ? err.message : "Something went wrong.");
+      editListModal.setUpdatingList(false);
+    }
+  }
+
   async function handleDeleteList() {
     if (!myListsState.deleteConfirmId) return;
     myListsState.setDeletingList(true);
@@ -130,6 +160,16 @@ export function useHomeModule() {
     openNewListModal,
     closeNewListModal: () => newListModal.setShowNewListModal(false),
     handleCreateList,
+
+    // Edit List Modal
+    editListId: editListModal.editListId,
+    editListName: editListModal.editListName,
+    setEditListName: editListModal.setEditListName,
+    updatingList: editListModal.updatingList,
+    editListError: editListModal.editListError,
+    openEditModal,
+    closeEditModal: () => editListModal.setEditListId(null),
+    handleUpdateList,
 
     // Quick Shop
     showQuickShop: quickShop.showQuickShop,

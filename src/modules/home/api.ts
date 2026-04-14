@@ -35,6 +35,18 @@ export async function apiCreateList(
   return data.data;
 }
 
+export async function apiUpdateList(id: string, name: string): Promise<void> {
+  const res = await fetch(`/api/lists/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  const data = await res.json() as { success: boolean; error?: string };
+  if (!res.ok || !data.success) {
+    throw new Error(data.error ?? "Failed to update list. Please try again.");
+  }
+}
+
 export async function apiDeleteList(id: string): Promise<void> {
   const res = await fetch(`/api/lists/${id}`, { method: "DELETE" });
   const data = await res.json() as { success: boolean; error?: string };

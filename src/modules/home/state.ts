@@ -22,6 +22,14 @@ export function useNewListModalState() {
   };
 }
 
+export function useEditListModalState() {
+  const [editListId, setEditListId] = useState<string | null>(null);
+  const [editListName, setEditListName] = useState("");
+  const [updatingList, setUpdatingList] = useState(false);
+  const [editListError, setEditListError] = useState("");
+  return { editListId, setEditListId, editListName, setEditListName, updatingList, setUpdatingList, editListError, setEditListError };
+}
+
 export function useQuickShopState() {
   const [showQuickShop, setShowQuickShop] = useState(false);
   const [name, setName] = useState("");
