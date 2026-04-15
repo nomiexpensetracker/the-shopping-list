@@ -136,6 +136,7 @@ export function useHomeModule() {
       myListsState.setDeleteConfirmId(null);
     } catch (err) {
       myListsState.setDeleteListError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
       myListsState.setDeletingList(false);
     }
   }
@@ -145,7 +146,11 @@ export function useHomeModule() {
     myLists: myListsState.myLists,
     navigateToList: (id: string) => router.push(`/app/list/${id}`),
     deleteConfirmId: myListsState.deleteConfirmId,
-    openDeleteConfirm: (id: string) => { myListsState.setDeleteListError(""); myListsState.setDeleteConfirmId(id); },
+    openDeleteConfirm: (id: string) => {
+      myListsState.setDeleteListError("");
+      myListsState.setDeletingList(false);
+      myListsState.setDeleteConfirmId(id);
+    },
     closeDeleteConfirm: () => myListsState.setDeleteConfirmId(null),
     deletingList: myListsState.deletingList,
     deleteListError: myListsState.deleteListError,

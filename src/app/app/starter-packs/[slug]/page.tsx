@@ -251,20 +251,6 @@ export default async function StarterPackDetailPage(
   );
 }
 
-// ----------------------------------------------------------------
-// Sub-components
-// ----------------------------------------------------------------
-function Tag({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="text-xs font-medium px-2.5 py-1 rounded-full capitalize"
-      style={{ background: "var(--border)", color: "var(--muted)" }}
-    >
-      {children}
-    </span>
-  );
-}
-
 function IngredientRow({ item }: { item: StarterPackVariantItem }) {
   return (
     <li className="flex items-center justify-between py-3 gap-4">

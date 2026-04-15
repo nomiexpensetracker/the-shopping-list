@@ -17,17 +17,29 @@ export async function GET(_req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Invalid token" }, { status: 400 });
   }
 
-  const sessions = await sql`SELECT id FROM sessions WHERE id = ${token}`;
+  let sessions;
+  try {
+    sessions = await sql`SELECT id FROM sessions WHERE id = ${token}`;
+  } catch (err) {
+    console.error("[GET /api/sessions/:token/items] db error:", err);
+    return NextResponse.json({ error: "Failed to fetch items", success: false }, { status: 500 });
+  }
   if (sessions.length === 0) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  const items = await sql`
-    SELECT id, session_id, name, quantity, description, state, price, created_at, created_by, updated_at, updated_by, collected_at, collected_by
-    FROM items
-    WHERE session_id = ${token}
-    ORDER BY created_at ASC;
-  `;
+  let items;
+  try {
+    items = await sql`
+      SELECT id, session_id, name, quantity, description, state, price, created_at, created_by, updated_at, updated_by, collected_at, collected_by
+      FROM items
+      WHERE session_id = ${token}
+      ORDER BY created_at ASC;
+    `;
+  } catch (err) {
+    console.error("[GET /api/sessions/:token/items] db error:", err);
+    return NextResponse.json({ error: "Failed to fetch items", success: false }, { status: 500 });
+  }
 
   return NextResponse.json({
     data: items,
@@ -44,8 +56,14 @@ export async function POST(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Invalid token" }, { status: 400 });
   }
 
-  const sessions = await sql`SELECT id FROM sessions WHERE id = ${token}`;
-  if (sessions.length === 0) {
+  let postSessions;
+  try {
+    postSessions = await sql`SELECT id FROM sessions WHERE id = ${token}`;
+  } catch (err) {
+    console.error("[POST /api/sessions/:token/items] db error:", err);
+    return NextResponse.json({ error: "Failed to add item", success: false }, { status: 500 });
+  }
+  if (postSessions.length === 0) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
@@ -67,14 +85,19 @@ export async function POST(req: Request, { params }: RouteContext) {
 
   const id = generateItemId();
 
-  const [item] = await sql`
-    INSERT INTO items (id, session_id, name, quantity, created_by, description)
-    VALUES (${id}, ${token}, ${(name as string).trim()}, ${quantity as number}, ${created_by as string}, ${description as string | null})
-    RETURNING id, session_id, name, quantity, state, price, description, created_at, created_by, updated_at, updated_by, collected_at, collected_by
-  `;
-
-  // bump session last_active
-  await sql`UPDATE sessions SET last_active = NOW() WHERE id = ${token}`;
+  let item;
+  try {
+    [item] = await sql`
+      INSERT INTO items (id, session_id, name, quantity, created_by, description)
+      VALUES (${id}, ${token}, ${(name as string).trim()}, ${quantity as number}, ${created_by as string}, ${description as string | null})
+      RETURNING id, session_id, name, quantity, state, price, description, created_at, created_by, updated_at, updated_by, collected_at, collected_by
+    `;
+    // bump session last_active
+    await sql`UPDATE sessions SET last_active = NOW() WHERE id = ${token}`;
+  } catch (err) {
+    console.error("[POST /api/sessions/:token/items] db error:", err);
+    return NextResponse.json({ error: "Failed to add item", success: false }, { status: 500 });
+  }
 
   return NextResponse.json({
     data: item,

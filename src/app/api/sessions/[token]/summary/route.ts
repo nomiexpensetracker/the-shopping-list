@@ -16,45 +16,51 @@ export async function GET(
     return NextResponse.json({ error: "Invalid session token" }, { status: 400 });
   }
 
-  const summary = await sql`
-    SELECT
-      s.id AS session_id,
-      s.title AS session_name,
-      s.created_at::date AS session_date,
-      to_char(s.created_at, 'HH12:MI AM') AS session_time,
+  let summary;
+  try {
+    summary = await sql`
+      SELECT
+        s.id AS session_id,
+        s.title AS session_name,
+        s.created_at::date AS session_date,
+        to_char(s.created_at, 'HH12:MI AM') AS session_time,
 
-      -- total items count
-      (
-        SELECT COUNT(*)
-        FROM items i
-        WHERE i.session_id = s.id AND i.state != 'deleted'
-      ) AS total_items_count,
+        -- total items count
+        (
+          SELECT COUNT(*)
+          FROM items i
+          WHERE i.session_id = s.id AND i.state != 'deleted'
+        ) AS total_items_count,
 
-      -- collected items count
-      (
-        SELECT COUNT(*)
-        FROM items i
-        WHERE i.session_id = s.id
-          AND i.state = 'collected'
-      ) AS collected_items_count,
+        -- collected items count
+        (
+          SELECT COUNT(*)
+          FROM items i
+          WHERE i.session_id = s.id
+            AND i.state = 'collected'
+        ) AS collected_items_count,
 
-      -- collected items total price
-      (
-        SELECT COALESCE(SUM(i.price * i.quantity), 0)
-        FROM items i
-        WHERE i.session_id = s.id
-          AND i.state = 'collected'
-      ) AS collected_items_total_price,
+        -- collected items total price
+        (
+          SELECT COALESCE(SUM(i.price * i.quantity), 0)
+          FROM items i
+          WHERE i.session_id = s.id
+            AND i.state = 'collected'
+        ) AS collected_items_total_price,
 
-      -- participants count
-      (
-        SELECT COUNT(*)
-        FROM session_participants sp
-        WHERE sp.session_id = s.id
-      ) AS participants_count
-    FROM sessions s
-    WHERE s.id = ${token}
-  `;
+        -- participants count
+        (
+          SELECT COUNT(*)
+          FROM session_participants sp
+          WHERE sp.session_id = s.id
+        ) AS participants_count
+      FROM sessions s
+      WHERE s.id = ${token}
+    `;
+  } catch (err) {
+    console.error("[GET /api/sessions/:token/summary] db error:", err);
+    return NextResponse.json({ error: "Failed to fetch summary", success: false }, { status: 500 });
+  }
 
   if (summary.length === 0) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });

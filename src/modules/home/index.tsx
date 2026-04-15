@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import MobileGate from "@/components/MobileGate";
 import ThemeToggle from "@/components/ThemeToggle";
 import { AddIcon } from "@/components/icons";

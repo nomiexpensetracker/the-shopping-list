@@ -82,14 +82,14 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   // filter current user out of the participants list to avoid showing their own join toast
   const currentUserId = typeof window !== "undefined" ? localStorage.getItem(`participant_${token}_id`) : null
   const filteredParticipants = useMemo(() => {
-    return session?.data.participants.filter(p => p.id !== currentUserId) ?? [];
+    return (session?.data.participants ?? []).filter(p => p.id !== currentUserId);
   }, [session, currentUserId]);
 
   // define user role
   const isUserHost = useMemo(() => {
     if (!session || !currentUserId) return false;
 
-    const currentUser = session.data.participants.find((participant) => participant.id === currentUserId)
+    const currentUser = (session.data.participants ?? []).find((participant) => participant.id === currentUserId)
     if (currentUser && currentUser.role === 'host') return true;
     return false;
   }, [session, currentUserId]);

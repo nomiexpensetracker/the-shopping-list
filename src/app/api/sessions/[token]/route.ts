@@ -16,26 +16,35 @@ export async function GET(
     return NextResponse.json({ error: "Invalid session token" }, { status: 400 });
   }
 
-  const rows = await sql`
-    SELECT 
-      sessions.id, 
-      sessions.title, 
-      sessions.created_at, 
-      sessions.last_active,
-      sessions.list_id,
-      json_agg(
-        json_build_object(
-          'id', session_participants.id,
-          'name', session_participants.name,
-          'role', session_participants.role,
-          'color', session_participants.color
-        )
-      ) FILTER (WHERE session_participants.id IS NOT NULL) as participants
-    FROM sessions
-    LEFT JOIN session_participants ON sessions.id = session_participants.session_id
-    WHERE sessions.id = ${token}
-    GROUP BY sessions.id, sessions.title, sessions.created_at, sessions.last_active, sessions.list_id
-  `;
+  let rows;
+  try {
+    rows = await sql`
+      SELECT 
+        sessions.id, 
+        sessions.title, 
+        sessions.created_at, 
+        sessions.last_active,
+        sessions.list_id,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', session_participants.id,
+              'name', session_participants.name,
+              'role', session_participants.role,
+              'color', session_participants.color
+            )
+          ) FILTER (WHERE session_participants.id IS NOT NULL),
+          '[]'::json
+        ) as participants
+      FROM sessions
+      LEFT JOIN session_participants ON sessions.id = session_participants.session_id
+      WHERE sessions.id = ${token}
+      GROUP BY sessions.id, sessions.title, sessions.created_at, sessions.last_active, sessions.list_id
+    `;
+  } catch (err) {
+    console.error("[GET /api/sessions/:token] db error:", err);
+    return NextResponse.json({ error: "Failed to fetch session", success: false }, { status: 500 });
+  }
 
   if (rows.length === 0) {
     return NextResponse.json({ error: "Session not found", success: false, status: 404 });
@@ -68,9 +77,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid session title" }, { status: 400 });
   }
 
-  await sql`
-    UPDATE sessions SET title = ${(title as string).trim()} WHERE id = ${token}
-  `;
+  try {
+    await sql`
+      UPDATE sessions SET title = ${(title as string).trim()} WHERE id = ${token}
+    `;
+  } catch (err) {
+    console.error("[PATCH /api/sessions/:token] db error:", err);
+    return NextResponse.json({ error: "Failed to update session", success: false }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }
@@ -87,7 +101,14 @@ export async function DELETE(
   }
 
   // Check whether this session was spawned from a list
-  const [sessionRow] = await sql`SELECT list_id FROM sessions WHERE id = ${token}`;
+  let sessionRow: { list_id: string | null } | undefined;
+  try {
+    const rows = await sql`SELECT list_id FROM sessions WHERE id = ${token}`;
+    sessionRow = rows[0] as { list_id: string | null } | undefined;
+  } catch (err) {
+    console.error("[DELETE /api/sessions/:token] db error:", err);
+    return NextResponse.json({ error: "Failed to delete session", success: false }, { status: 500 });
+  }
   if (!sessionRow) {
     return NextResponse.json({ error: "Session not found", success: false }, { status: 404 });
   }
