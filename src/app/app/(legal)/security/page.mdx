@@ -1,0 +1,89 @@
+export const metadata = {
+  title: "Security — The Shopping List",
+  description: "How The Shopping List protects your data and your sessions.",
+};
+
+# Security
+
+**Last updated:** April 16, 2026
+
+Security is a core design principle of The Shopping List. Because the app is fully anonymous and stores no accounts or passwords, the attack surface is intentionally small.
+
+---
+
+## 1. Transport Security
+
+All traffic between your browser and our servers is encrypted using **HTTPS/TLS**. Plain HTTP connections are not accepted.
+
+---
+
+## 2. Unguessable Tokens
+
+Every session, list, template, and participant is identified by a **CUID2** token — a cryptographically random, non-sequential, 24–32 character identifier.
+
+- Tokens cannot be guessed or enumerated — there are no `/session/1`, `/session/2` style IDs.
+- Access to a session or list is granted purely by possessing the correct token URL.
+- Tokens are never embedded in predictable patterns (no date-based IDs, no auto-increment).
+
+**Guard your session link.** Anyone who has it can join your session as a participant.
+
+---
+
+## 3. No Authentication System
+
+There are no user accounts, passwords, or authentication tokens in The Shopping List. This is a deliberate security design choice:
+
+- There is no password database that could be leaked.
+- There are no login credentials to phish.
+- Session identity is stored only in your browser's `localStorage` — clearing it removes your identity from that device.
+
+---
+
+## 4. Input Validation
+
+All user-supplied content (names, titles, prices, quantities) is validated server-side before being stored:
+
+- String lengths are enforced at the API layer.
+- Numeric fields (quantities, prices) are validated for type and range.
+- SQL injection is prevented through parameterised queries via the `@neondatabase/serverless` driver.
+
+---
+
+## 5. Search Engine Exclusion
+
+Private routes are excluded from search engine indexing via `noindex` response headers:
+
+- `/app/session/*` — session routes are never indexed.
+- `/app/list/*` — personal list routes are never indexed.
+
+Public marketing routes (`/`, `/app/starter-packs`) remain indexable.
+
+---
+
+## 6. Cookie & Analytics Security
+
+Google Analytics 4 is only loaded **after you explicitly accept cookies** via the consent banner. If you decline, no GA scripts are loaded and no GA cookies are set. See our [Cookies page](/app/cookies) for the full breakdown.
+
+---
+
+## 7. Data Minimisation
+
+We do not collect IP addresses, device fingerprints, or any persistent user identifiers beyond the nickname you choose. The IP-based country detection used for currency formatting is transient — it is never stored.
+
+---
+
+## 8. Responsible Disclosure
+
+If you discover a security vulnerability in The Shopping List, please report it responsibly before public disclosure. Contact us at:
+
+**[hello@theshoppinglist.com](mailto:hello@theshoppinglist.com)**
+
+We aim to acknowledge reports within 48 hours and to address valid findings promptly.
+
+---
+
+## 9. Infrastructure
+
+- **Hosting**: [Vercel](https://vercel.com) (edge-deployed, DDoS-protected)
+- **Database**: [Neon](https://neon.tech) (managed serverless PostgreSQL, encrypted at rest)
+- **CDN / Edge**: Vercel's global edge network with automatic HTTPS

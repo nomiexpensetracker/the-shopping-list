@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import CommonFooter from "@/components/CommonFooter";
+
 function PhoneMockup() {
   return (
     <div className="relative mx-auto w-55">
@@ -228,17 +230,7 @@ export default function LandingPage() {
       </main>
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer className="py-6 flex justify-center gap-6">
-        {["Privacy", "Security", "Cookies", "Terms"].map((item) => (
-          <span
-            key={item}
-            className="text-xs"
-            style={{ color: "var(--muted)" }}
-          >
-            {item}
-          </span>
-        ))}
-      </footer>
+      <CommonFooter />
     </div>
   );
 }

@@ -11,9 +11,13 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@mdx-js/loader": "^3.1.1",
+    "@mdx-js/react": "^3.1.1",
     "@neondatabase/serverless": "^0.10.4",
+    "@next/mdx": "^16.2.4",
     "@paralleldrive/cuid2": "^3.3.0",
     "@react-pdf/renderer": "^4.3.2",
+    "@tailwindcss/typography": "^0.5.19",
     "@types/qrcode": "^1.5.6",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
@@ -23,6 +27,8 @@
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
     "swr": "^2.4.1"
   },
   "devDependencies": {

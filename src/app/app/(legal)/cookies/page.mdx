@@ -1,0 +1,92 @@
+export const metadata = {
+  title: "Cookies — The Shopping List",
+  description: "How The Shopping List uses cookies and browser storage.",
+};
+
+# Cookies
+
+**Last updated:** April 16, 2026
+
+This page explains what cookies and browser storage The Shopping List uses, why, and how you can control them.
+
+---
+
+## 1. What Are Cookies?
+
+Cookies are small text files stored in your browser by a website. They persist across browser sessions and can be read back on future visits.
+
+---
+
+## 2. Cookies We Set
+
+**The Shopping List's own servers set no cookies.** We do not use session cookies, authentication cookies, or any server-side tracking cookies.
+
+The only cookies that may be present in your browser are those set by **Google Analytics 4**, and only if you have accepted our cookie consent.
+
+### Google Analytics 4 Cookies
+
+| Cookie | Purpose | Duration |
+|---|---|---|
+| `_ga` | Distinguishes unique users | 2 years |
+| `_gid` | Distinguishes users within a 24-hour window | 24 hours |
+| `_ga_EG3HB87D9P` | Stores session state for GA4 | 1 year |
+
+**These cookies are only set after you explicitly click "Accept" on the cookie consent banner.** If you click "Decline", GA4 is never loaded and none of these cookies are set.
+
+---
+
+## 3. Browser Storage (Not Cookies)
+
+We use your browser's `localStorage` for app functionality. Unlike cookies, `localStorage` data is **not sent to our servers automatically** — it stays on your device.
+
+| Key | Contents | Purpose |
+|---|---|---|
+| `lists_registry` | List tokens | Tracks which shopping lists belong to this browser |
+| `participant_<sessionId>_id` | Participant token | Identifies you within a specific session |
+| `participant_<sessionId>_name` | Your nickname | Restores your name when you re-visit a session |
+| `participant_<sessionId>_color` | Your avatar color | Restores your colour when you re-visit a session |
+| `cookie_consent` | `"accepted"` or `"declined"` | Remembers your cookie consent choice |
+
+---
+
+## 4. Your Consent
+
+When you first visit The Shopping List, a consent banner appears at the bottom of the screen. You have two choices:
+
+- **Accept** — Google Analytics is enabled. GA4 cookies will be set in your browser.
+- **Decline** — Google Analytics is never loaded. No GA4 cookies are set.
+
+Your choice is stored in `localStorage` under the key `cookie_consent`. Once you make a choice, the banner will not appear again.
+
+---
+
+## 5. How to Manage or Withdraw Consent
+
+You can change or withdraw your consent at any time by:
+
+1. **Clearing your browser's local storage** for this site — your choice will be reset and the consent banner will re-appear on your next visit.
+2. **Using your browser's cookie settings** to delete the `_ga`, `_gid`, and `_ga_EG3HB87D9P` cookies directly.
+3. **Installing the [Google Analytics Opt-out Browser Add-on](https://tools.google.com/dlpage/gaoptout)** — this prevents GA4 from collecting data across all websites.
+
+Instructions for managing cookies and local storage:
+- [Chrome](https://support.google.com/chrome/answer/95647)
+- [Firefox](https://support.mozilla.org/en-US/kb/clear-cookies-and-site-data-firefox)
+- [Safari](https://support.apple.com/guide/safari/manage-cookies-sfri11471/mac)
+
+---
+
+## 6. Third-Party Analytics (No Cookies)
+
+**Vercel Analytics** and **Vercel Speed Insights** are also active on this site. These tools collect anonymous, aggregated performance and usage data and do **not** set any persistent cookies. They are not subject to cookie consent.
+
+---
+
+## 7. Changes to This Policy
+
+If we change the cookies we use, we will update this page and the effective date. We will re-prompt for consent if the nature of cookie use changes materially.
+
+---
+
+## Contact
+
+Questions? Email us at [hello@theshoppinglist.com](mailto:hello@theshoppinglist.com).

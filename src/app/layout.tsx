@@ -1,8 +1,9 @@
-import Script from "next/script";
 import type { Metadata } from "next";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Plus_Jakarta_Sans } from "next/font/google";
+import AnalyticsScripts from "@/components/AnalyticsScripts";
+import CookieBanner from "@/components/CookieBanner";
 
 import "./globals.css";
 
@@ -48,23 +49,13 @@ export default function RootLayout({
       className={`${jakartaSans.variable} h-full antialiased`}
     >
       <head>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-EG3HB87D9P"
-          strategy="afterInteractive"
-        />
-        <Script id="gtag-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-EG3HB87D9P');
-          `}
-        </Script>
       </head>
       <body className="min-h-full flex flex-col">
         {children}
         <Analytics />
         <SpeedInsights />
+        <AnalyticsScripts />
+        <CookieBanner />
       </body>
     </html>
   );

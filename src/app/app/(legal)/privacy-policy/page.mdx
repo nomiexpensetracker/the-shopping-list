@@ -1,0 +1,137 @@
+export const metadata = {
+  title: "Privacy Policy — The Shopping List",
+  description: "How The Shopping List collects, uses, and protects your information.",
+};
+
+# Privacy Policy
+
+**Effective date:** April 16, 2026
+
+The Shopping List is designed from the ground up to be an anonymous, privacy-first application. We collect only what is strictly necessary to provide the service.
+
+---
+
+## 1. What We Collect
+
+### Information you provide
+
+| Data | Purpose | Max length |
+|---|---|---|
+| Display name (nickname) | Identify you inside a session or list | 26 characters |
+| Session title | Label a shopping session | 26 characters |
+| List name | Label a personal list | 60 characters |
+| Item names | Shopping list content | 200 characters |
+| Item prices | Budget tracking (optional) | Numeric |
+
+We never ask for your real name, email address, phone number, payment details, or any government-issued identifier.
+
+### Automatically collected data
+
+When you visit the app, our hosting provider (Vercel) may log standard HTTP request metadata such as your IP address, browser type, and the pages visited. This data is used for operational purposes and is subject to [Vercel's Privacy Policy](https://vercel.com/legal/privacy-policy).
+
+Your IP address is also used at the network edge to detect your country for **currency and locale formatting only** (e.g., showing prices in your local format). This country code is **never stored** in our database — it is only used to set a transient response header.
+
+---
+
+## 2. How We Store Your Data
+
+### Server-side (Neon PostgreSQL)
+
+Your session data, participants, items, and activity logs are stored in a managed PostgreSQL database hosted by [Neon](https://neon.tech). The following tables hold user-related data:
+
+- `sessions` — session ID, title, timestamps
+- `session_participants` — nickname, random color, role, timestamps
+- `items` — item names, quantities, prices, states, attribution
+- `item_activities` — audit log of item actions
+- `lists` — list ID, name, timestamps
+- `list_items` — item names, quantities, states
+
+No personally identifiable information beyond a freely chosen nickname is stored.
+
+### Client-side (`localStorage`)
+
+The following data is stored locally in your browser and **never sent to our servers unsolicited**:
+
+| Key | Contents |
+|---|---|
+| `lists_registry` | Tokens of lists you own in this browser |
+| `participant_<sessionId>_id` | Your participant token for a session |
+| `participant_<sessionId>_name` | Your chosen nickname for a session |
+| `participant_<sessionId>_color` | Your avatar color for a session |
+| `cookie_consent` | Your cookie consent choice (`accepted` or `declined`) |
+
+---
+
+## 3. Data Retention
+
+| Data type | Retention period |
+|---|---|
+| Sessions & session items | **48 hours** from last activity, then auto-deleted |
+| Templates (legacy QR blueprints) | **30 days**, then auto-deleted |
+| Lists & list items | **1 year** of inactivity, then auto-deleted |
+| Analytics data | Per Google Analytics / Vercel policies (see below) |
+
+---
+
+## 4. Third-Party Services
+
+### Google Analytics 4 (GA4)
+
+**Only active if you have accepted cookies.**
+
+We use Google Analytics 4 (`G-EG3HB87D9P`) to understand how the app is used. When you accept cookies, GA4 collects:
+
+- Pages visited and navigation paths
+- Session duration and interactions
+- Device type, browser, and approximate location (country/city level)
+
+GA4 sets persistent cookies (`_ga`, `_gid`, `_ga_<ID>`) in your browser. See [Google's Privacy Policy](https://policies.google.com/privacy) for details. You can opt out at any time via the [Google Analytics Opt-out Browser Add-on](https://tools.google.com/dlpage/gaoptout).
+
+### Vercel Analytics & Speed Insights
+
+These tools collect anonymous page view and performance data (Web Vitals) to help us improve the app. They do **not** set persistent cookies and do not identify individual users. See [Vercel's Privacy Policy](https://vercel.com/legal/privacy-policy).
+
+### Neon (Database Hosting)
+
+Our PostgreSQL database is hosted by Neon. Data is stored in a secure, managed environment. See [Neon's Privacy Policy](https://neon.tech/privacy-policy).
+
+---
+
+## 5. Data Security
+
+- All traffic is encrypted in transit via **HTTPS/TLS**.
+- All session, list, and participant IDs are generated using **CUID2** — cryptographically unguessable, non-sequential tokens.
+- There is no authentication system, meaning there are no passwords to be stolen or leaked.
+- Server-side input validation is applied to all user-supplied fields.
+
+See our [Security page](/app/security) for more details.
+
+---
+
+## 6. Your Rights
+
+Since we collect minimal data and no account is required, most traditional data rights (access, correction, deletion) apply at the session level:
+
+- **Access & deletion**: Session data auto-expires within 48 hours. You can end a session at any time to delete it immediately.
+- **List deletion**: Lists persist for 1 year of inactivity. You can remove a list from your browser's local storage at any time.
+- **Cookie opt-out**: You can withdraw your cookie consent by clearing your browser's local storage or using your browser's cookie management settings.
+
+For any other data concerns, contact us at [hello@theshoppinglist.com](mailto:hello@theshoppinglist.com).
+
+---
+
+## 7. Children's Privacy
+
+This app is not directed at children under 13. We do not knowingly collect any information from children. If you believe a child has provided information through the app, contact us and we will promptly delete it.
+
+---
+
+## 8. Changes to This Policy
+
+We may update this policy as the app evolves. The effective date at the top of this page will reflect the most recent revision.
+
+---
+
+## 9. Contact
+
+Questions about this privacy policy? Email us at [hello@theshoppinglist.com](mailto:hello@theshoppinglist.com).

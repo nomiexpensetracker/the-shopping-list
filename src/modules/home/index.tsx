@@ -11,6 +11,7 @@ import QuickShopSection from "./components/QuickShopSection";
 import { useHomeModule } from "./hooks";
 import Divider from "./components/Divider";
 import StarterPackSection from "./components/StarterPackSection";
+import CommonFooter from "@/components/CommonFooter";
 
 export default function HomeModule() {
   const {
@@ -140,6 +141,7 @@ export default function HomeModule() {
           savingLabel="Saving…"
         />
       )}
+      <CommonFooter />
     </MobileGate>
   );
 }

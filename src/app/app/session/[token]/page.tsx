@@ -9,15 +9,15 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 import type { Item, Summary, SyncDataType } from "@/types/dao";
 
-import Header from "@/components/Header";
 import ItemCard from "@/components/ItemCard";
 import MobileGate from "@/components/MobileGate";
 import InviteModal from "@/components/InviteModal";
 import CollectModal from "@/components/CollectModal";
 import EditItemModal from "@/components/EditItemModal";
-import UpdateSessionModal from "@/components/UpdateSessionModal";
-import ParticipantToast from "@/components/ParticipantToast";
+import SessionHeader from "@/components/SessionHeader";
 import EndSessionModal from "@/components/EndSessionModal";
+import ParticipantToast from "@/components/ParticipantToast";
+import UpdateSessionModal from "@/components/UpdateSessionModal";
 import { CartIcon, AddIcon } from "@/components/icons";
 
 import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
@@ -235,9 +235,9 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       {/* noindex for private session */}
       <meta name="robots" content="noindex,nofollow" />
 
-      {/* Header */}
+      {/* SessionHeader */}
       {session && session.data && (
-        <Header
+        <SessionHeader
           session={session.data}
           syncStatus={syncStatus}
           onShare={() => setShowInvite(true)}

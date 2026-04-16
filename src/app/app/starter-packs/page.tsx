@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 import type { StarterPack } from "@/types/dao";
-import StarterPacksTopBar from "@/components/StarterPacksTopBar";
+import CommonHeader from "@/components/CommonHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +43,7 @@ export default async function StarterPacksPage() {
 
   return (
     <div style={{ background: "var(--background)", minHeight: "100dvh" }}>
-      <StarterPacksTopBar />
+      <CommonHeader />
 
       {/* Page header */}
       <div style={{ borderBottom: "1px solid var(--border)" }}>
