@@ -1,4 +1,4 @@
-import { Participant } from "./dao";
+import { Item, Participant, Summary } from "./dao";
 
 export type CommonResponse<T> = {
   data: T;
@@ -28,6 +28,13 @@ export interface GetSessionDetailResponse {
   last_active: string
   list_id: string | null
   participants: Participant[]
+}
+
+/** Shape returned by GET /api/sessions/[token]/sync */
+export interface GetSessionSyncResponse {
+  session: GetSessionDetailResponse
+  items: Item[]
+  summary: Summary
 }
 
 export interface PostListResponse {

@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { CurrencyProvider } from "@/components/CurrencyProvider";
+import { SWRConfig } from "swr";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
@@ -8,7 +9,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <CurrencyProvider initialLocale={locale} initialCurrency={currency}>
-      {children}
+      <SWRConfig value={{
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+        revalidateIfStale: false,
+      }}>
+        {children}
+      </SWRConfig>
     </CurrencyProvider>
   );
 }

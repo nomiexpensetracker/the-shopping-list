@@ -3,6 +3,93 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useRef, useCallback, useState, useEffect } from "react";
 
+// ---------------------------------------------------------------------------
+// Adaptive polling interval
+// ---------------------------------------------------------------------------
+
+type ActivityState = "active" | "idle" | "background";
+
+const POLL_ACTIVE     = 30_000;       // 30 s  — user is interacting
+const POLL_IDLE       = 2 * 60_000;   // 2 min — tab visible but no interaction
+const POLL_BACKGROUND = 10 * 60_000;  // 10 min — tab hidden
+const IDLE_THRESHOLD  = 60_000;       // 1 min of silence → idle
+
+const POLL_INTERVALS: Record<ActivityState, number> = {
+  active:     POLL_ACTIVE,
+  idle:       POLL_IDLE,
+  background: POLL_BACKGROUND,
+};
+
+/**
+ * Returns a polling interval (ms) that adapts to user activity and tab visibility.
+ *
+ * State machine:
+ *   active ──(1 min no interaction)──► idle
+ *   idle   ──(any interaction)───────► active
+ *   * ─────(tab hidden)──────────────► background
+ *   background ──(tab visible)───────► active | idle (based on last activity)
+ *
+ * Use the returned value directly as SWR's `refreshInterval`.
+ */
+export const useAdaptivePollingInterval = (): number => {
+  const [state, setState] = useState<ActivityState>(() => {
+    if (typeof document === "undefined") return "active";
+    return document.hidden ? "background" : "active";
+  });
+
+  const lastActivityRef = useRef(0);
+
+  // Effect A — track user interaction
+  useEffect(() => {
+    lastActivityRef.current = Date.now(); // stamp mount time as baseline
+    const stamp = () => {
+      lastActivityRef.current = Date.now();
+      if (!document.hidden) setState("active");
+    };
+
+    window.addEventListener("pointerdown", stamp, { passive: true });
+    window.addEventListener("keydown",     stamp, { passive: true });
+    window.addEventListener("touchstart",  stamp, { passive: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", stamp);
+      window.removeEventListener("keydown",     stamp);
+      window.removeEventListener("touchstart",  stamp);
+    };
+  }, []);
+
+  // Effect B — track tab visibility
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) {
+        setState("background");
+      } else {
+        const sinceActivity = Date.now() - lastActivityRef.current;
+        setState(sinceActivity >= IDLE_THRESHOLD ? "idle" : "active");
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  // Effect C — idle checker (runs every 10 s, only when tab is visible)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (document.hidden) return;
+      const sinceActivity = Date.now() - lastActivityRef.current;
+      setState((prev) => {
+        if (prev === "background") return prev;
+        return sinceActivity >= IDLE_THRESHOLD ? "idle" : "active";
+      });
+    }, 10_000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return POLL_INTERVALS[state];
+};
+
 /**
  * Custom hook for debouncing callback function execution.
  * 
