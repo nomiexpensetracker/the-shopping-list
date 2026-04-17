@@ -7,15 +7,17 @@ import { SyncDataType } from '@/types/dao';
 import { GetSessionDetailResponse } from '@/types/dto';
 import ParticipantAvatars from './ParticipantAvatars';
 import { ShareIcon, LogOutIcon, MoonIcon, SunIcon } from './icons';
+import { RefreshIcon } from './icons';
 
 interface HeaderProps {
   session: GetSessionDetailResponse;
   syncStatus: SyncDataType;
   onShare: () => void;
   onEnd: () => void;
+  onRefresh?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ session, syncStatus, onShare, onEnd }) => {
+const Header: React.FC<HeaderProps> = ({ session, syncStatus, onShare, onEnd, onRefresh }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [dark, setDark] = useState(() => {
@@ -79,6 +81,19 @@ const Header: React.FC<HeaderProps> = ({ session, syncStatus, onShare, onEnd }) 
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Manual refresh */}
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            disabled={syncStatus === 'syncing'}
+            aria-label="Refresh session data"
+            className="w-9 h-9 rounded-full flex items-center justify-center transition disabled:opacity-40"
+            style={{ border: "1px solid var(--border)", color: "var(--foreground)" }}
+          >
+            <RefreshIcon fill="currentColor" size={16} />
+          </button>
+        )}
+
         {/* Participant avatars */}
         <ParticipantAvatars participants={session.participants ?? []} />
 

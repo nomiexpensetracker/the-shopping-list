@@ -6,8 +6,9 @@ import Image from "next/image";
 import useSWR from "swr";
 import { use, useMemo, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useAdaptivePollingInterval } from "@/lib/hooks";
 
-import type { Item, Summary, SyncDataType } from "@/types/dao";
+import type { Item, SyncDataType } from "@/types/dao";
 
 import ItemCard from "@/components/ItemCard";
 import MobileGate from "@/components/MobileGate";
@@ -20,7 +21,7 @@ import ParticipantToast from "@/components/ParticipantToast";
 import UpdateSessionModal from "@/components/UpdateSessionModal";
 import { CartIcon, AddIcon } from "@/components/icons";
 
-import { CommonResponse, GetSessionDetailResponse, PostItemRequest } from "@/types/dto";
+import { CommonResponse, GetSessionSyncResponse, PostItemRequest } from "@/types/dto";
 import { useCurrency } from "@/components/CurrencyProvider";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -40,44 +41,28 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   const [showEndModal, setShowEndModal] = useState(false);
   const [endingSession, setEndingSession] = useState(false);
 
-  // fetch session details, including participants 
-  const { data: session, error: sessError } = useSWR<CommonResponse<GetSessionDetailResponse>>(
-    `/api/sessions/${token}`,
-    fetcher,
-    {
-      refreshInterval: 30 * 1000,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  );
+  const pollingInterval = useAdaptivePollingInterval();
 
-  // fetch session summary with items total count, item collected count, item collected total price, and participants count
-  const { data: summary, mutate: mutateSummary } = useSWR<CommonResponse<Summary>>(
-    `/api/sessions/${token}/summary`,
+  // Single merged poll — replaces the previous three separate SWR calls to
+  // /sessions/[token], /sessions/[token]/items, and /sessions/[token]/summary.
+  const { data: syncData, error: sessError, mutate } = useSWR<CommonResponse<GetSessionSyncResponse>>(
+    `/api/sessions/${token}/sync`,
     fetcher,
     {
-      refreshInterval: 30 * 1000,
+      refreshInterval: pollingInterval,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      dedupingInterval: 10_000,
       onSuccess: () => setSyncStatus("idle"),
       onError: () => setSyncStatus("error"),
       onLoadingSlow: () => setSyncStatus("syncing"),
     }
   );
 
-  // fetch list all items
-  const { data: items, mutate: mutateItems } = useSWR<CommonResponse<Item[]>>(
-    `/api/sessions/${token}/items`,
-    fetcher,
-    {
-      refreshInterval: 30 * 1000,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      onSuccess: () => setSyncStatus("idle"),
-      onError: () => setSyncStatus("error"),
-      onLoadingSlow: () => setSyncStatus("syncing"),
-    }
-  );
+  const session = useMemo(() => syncData ? { ...syncData, data: syncData.data?.session } : undefined, [syncData]);
+  const items   = useMemo(() => syncData ? { ...syncData, data: syncData.data?.items   } : undefined, [syncData]);
+  const summary = useMemo(() => syncData ? { ...syncData, data: syncData.data?.summary } : undefined, [syncData]);
 
   // filter current user out of the participants list to avoid showing their own join toast
   const currentUserId = typeof window !== "undefined" ? localStorage.getItem(`participant_${token}_id`) : null
@@ -96,8 +81,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
 
   const refetchAll = () => {
     setSyncStatus("syncing");
-    mutateItems();
-    mutateSummary();
+    mutate();
   }
 
   // handle start new session — only remove participant keys, not the lists registry
@@ -242,6 +226,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           syncStatus={syncStatus}
           onShare={() => setShowInvite(true)}
           onEnd={() => setShowEndModal(true)}
+          onRefresh={refetchAll}
         />
       )}
 
@@ -406,8 +391,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           initialName={localStorage.getItem(`participant_${token}_name`) ?? "Shopper"}
           onDone={() => {
             router.replace(pathname, { scroll: false });
-            mutateItems();
-            mutateSummary();
+            mutate();
           }}
           onClose={() => router.replace(pathname, { scroll: false })}
         />
