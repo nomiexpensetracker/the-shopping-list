@@ -23,6 +23,8 @@ import { CartIcon, AddIcon } from "@/components/icons";
 
 import { CommonResponse, GetSessionSyncResponse, PostItemRequest } from "@/types/dto";
 import { useCurrency } from "@/components/CurrencyProvider";
+import CommonHeader from "@/components/CommonHeader";
+import CommonFooter from "@/components/CommonFooter";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -67,14 +69,16 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   // filter current user out of the participants list to avoid showing their own join toast
   const currentUserId = typeof window !== "undefined" ? localStorage.getItem(`participant_${token}_id`) : null
   const filteredParticipants = useMemo(() => {
-    return (session?.data.participants ?? []).filter(p => p.id !== currentUserId);
+    if (!session || !currentUserId) return [];
+
+    return (session?.data?.participants ?? []).filter(p => p.id !== currentUserId);
   }, [session, currentUserId]);
 
   // define user role
   const isUserHost = useMemo(() => {
     if (!session || !currentUserId) return false;
 
-    const currentUser = (session.data.participants ?? []).find((participant) => participant.id === currentUserId)
+    const currentUser = (session.data?.participants ?? []).find((participant) => participant.id === currentUserId)
     if (currentUser && currentUser.role === 'host') return true;
     return false;
   }, [session, currentUserId]);
@@ -94,23 +98,26 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
 
   if (sessError || (session && !session.success)) {
     return (
-      <div
-        className="min-h-dvh flex flex-col items-center justify-center px-6 text-center"
-        style={{ background: "var(--background)" }}
-      >
-        <p className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
-          Session not found
-        </p>
-        <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>
-          This session link is invalid or has expired.
-        </p>
-        <button
-          onClick={handleStartNewSession}
-          className="px-6 py-3 rounded-xl text-white font-semibold"
-          style={{ background: "var(--brand)" }}
+      <div>
+        <CommonHeader />
+        <div
+          className="min-h-dvh flex flex-col items-center justify-center px-6 text-center"
+          style={{ background: "var(--background)" }}
         >
-          Start new session
-        </button>
+          <p className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
+            Session not found
+          </p>
+          <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>
+            This session link is invalid or has expired.
+          </p>
+          <button
+            onClick={handleStartNewSession}
+            className="px-6 py-3 rounded-xl text-white font-semibold"
+            style={{ background: "var(--brand)" }}
+          >
+            Start new session
+          </button>
+        </div>
       </div>
     );
   }
@@ -282,7 +289,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
                 No items yet.
               </p>
               <p className="text-base" style={{ color: "var(--muted)" }}>
-                Start adding items together! Your session is active and ready for collaborative curation.
+                Start adding items together! Your session is active and ready for collaborative shopping experience.
               </p>
             </div>
           </div>
@@ -368,6 +375,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       {editTarget && (
         <EditItemModal
           item={editTarget === "new" ? null : editTarget}
+          label={editTarget === "new" ? "Quantity" : "Collected Quantity"}
           onDone={(name, qty, description) => {
             if (editTarget === "new") {
               addItem(name, qty, description);

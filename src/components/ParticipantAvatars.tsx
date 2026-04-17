@@ -38,7 +38,7 @@ export default function ParticipantAvatars({ participants }: ParticipantAvatarsP
             key={p.id}
             title={p.name}
             aria-label={p.name}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2"
+            className="size-10 rounded-full flex items-center justify-center text-xs font-bold border-2"
             style={{
               background: bg,
               color,

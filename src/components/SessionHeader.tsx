@@ -81,19 +81,6 @@ const Header: React.FC<HeaderProps> = ({ session, syncStatus, onShare, onEnd, on
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Manual refresh */}
-        {onRefresh && (
-          <button
-            onClick={onRefresh}
-            disabled={syncStatus === 'syncing'}
-            aria-label="Refresh session data"
-            className="w-9 h-9 rounded-full flex items-center justify-center transition disabled:opacity-40"
-            style={{ border: "1px solid var(--border)", color: "var(--foreground)" }}
-          >
-            <RefreshIcon fill="currentColor" size={16} />
-          </button>
-        )}
-
         {/* Participant avatars */}
         <ParticipantAvatars participants={session.participants ?? []} />
 
@@ -123,6 +110,17 @@ const Header: React.FC<HeaderProps> = ({ session, syncStatus, onShare, onEnd, on
                 border: "1px solid var(--border)",
               }}
             >
+              <button
+                role="menuitem"
+                onClick={onRefresh}
+                disabled={syncStatus === 'syncing'}
+                aria-label="Refresh session data"
+                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-left transition active:opacity-70"
+                style={{ color: "var(--foreground)" }}
+              >
+                <RefreshIcon fill="var(--foreground)" />
+                Refresh Session
+              </button>
               <button
                 role="menuitem"
                 onClick={() => { onShare(); setMenuOpen(false); }}

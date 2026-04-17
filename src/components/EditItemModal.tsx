@@ -7,12 +7,13 @@ import QuantityEditor from "./quantity-editor";
 import { CloseIcon } from "./icons";
 
 interface Props {
+  label?: string
   item: Item | null;  // null = adding new item
   onDone: (name: string, quantity: number, description: string | null) => void;
   onClose: () => void;
 }
 
-export default function EditItemModal({ item, onDone, onClose }: Props) {
+export default function EditItemModal({ item, label, onDone, onClose }: Props) {
   const [name, setName] = useState(item?.name ?? "");
   const [description, setDescription] = useState(item?.description ?? "");
   const [qty, setQty] = useState(item?.quantity ?? 1);
@@ -99,7 +100,7 @@ export default function EditItemModal({ item, onDone, onClose }: Props) {
         </div>
 
         {/* Quantity */}
-        <QuantityEditor qty={qty} setQty={setQty} />
+        <QuantityEditor qty={qty} setQty={setQty} label={label} />
 
         <div className="flex gap-2">
           <button
