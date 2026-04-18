@@ -24,7 +24,6 @@ import { CartIcon, AddIcon } from "@/components/icons";
 import { CommonResponse, GetSessionSyncResponse, PostItemRequest } from "@/types/dto";
 import { useCurrency } from "@/components/CurrencyProvider";
 import CommonHeader from "@/components/CommonHeader";
-import CommonFooter from "@/components/CommonFooter";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 

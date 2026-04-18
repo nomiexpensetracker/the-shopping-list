@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { StarterPackVariantWithItems } from "@/types/dto";
 import { CloseIcon } from "@/components/icons";
 
 // Detect mobile UA on the client.
@@ -15,19 +14,16 @@ function isMobileDevice(): boolean {
 }
 
 interface Props {
-  variants: StarterPackVariantWithItems[];
+  quickListId: string;
   packSlug: string;
   packTitle: string;
 }
 
 type Step = "idle" | "modal" | "qr-desktop" | "loading";
 
-export default function StartShoppingButton({ variants, packSlug, packTitle }: Props) {
+export default function StartShoppingButton({ quickListId: _quickListId, packSlug, packTitle }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("idle");
-  const [selectedVariantId, setSelectedVariantId] = useState<string>(
-    variants[0]?.id ?? ""
-  );
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [sessionUrl, setSessionUrl] = useState("");
@@ -55,11 +51,11 @@ export default function StartShoppingButton({ variants, packSlug, packTitle }: P
 
     try {
       const res = await fetch(
-        `/api/starter-packs/${packSlug}/variants/${selectedVariantId}`,
+        `/api/quick-lists/${packSlug}/start`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ participantName: trimmed }),
+          body: JSON.stringify({ participantName: trimmed, list_id: _quickListId }),
         }
       );
 
@@ -130,48 +126,6 @@ export default function StartShoppingButton({ variants, packSlug, packTitle }: P
             <h2 id="start-modal-title" className="text-2xl text-left font-bold" style={{ color: "var(--foreground)" }}>
               Start Shopping
             </h2>
-
-            {/* Variant selector — only show if more than one */}
-            {variants.length > 1 && (
-              <div>
-                <label
-                  htmlFor="variant-select"
-                  className="text-xs text-left font-semibold uppercase tracking-widest mb-2 block"
-                  style={{ color: "var(--muted)" }}
-                >
-                  Choose Variant
-                </label>
-                <div className="relative">
-                  <select
-                    id="variant-select"
-                    value={selectedVariantId}
-                    onChange={(e) => setSelectedVariantId(e.target.value)}
-                    disabled={step === "loading"}
-                    className="w-full appearance-none px-4 py-3 pr-10 rounded-xl text-base focus:outline-none disabled:opacity-50"
-                    style={{
-                      background: "var(--background)",
-                      border: "1px solid var(--border)",
-                      color: "var(--foreground)",
-                    }}
-                  >
-                    {variants.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.name} ({v.items.length} items)
-                      </option>
-                    ))}
-                  </select>
-                  <svg
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 size-4 shrink-0"
-                    style={{ color: "var(--muted)" }}
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            )}
 
             {/* Name input */}
             <div>

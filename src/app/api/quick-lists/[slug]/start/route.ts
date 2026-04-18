@@ -3,18 +3,18 @@ import { sql, getClient } from "@/lib/db";
 import { isValidSlug, isValidParticipantName } from "@/lib/validate";
 import { generateSessionId, generateSessionParticipantId, generateItemId } from "@/lib/session";
 import { getRandomHexColor } from "@/lib/utils";
-import type { PostStarterPackStartResponse } from "@/types/dto";
+import type { PostQuickListStartResponse } from "@/types/dto";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/starter-packs/[slug]/variants/[variantId]
+// POST /api/quick-lists/[slug]/start
 // Body: { participantName: string }
-// Creates a Quick Shop session from a starter pack variant and returns the session token.
+// Creates a Quick Shop session from a quick list and returns the session token.
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ slug: string; variantId: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const { slug, variantId } = await params;
+  const { slug } = await params;
 
   if (!isValidSlug(slug)) {
     return NextResponse.json(
@@ -42,30 +42,26 @@ export async function POST(
     );
   }
 
-  // Verify the variant belongs to the pack identified by slug
-  const [variant] = await sql`
-    SELECT spv.id, spv.starter_pack_id, sp.title AS pack_title
-    FROM starter_pack_variants spv
-    JOIN starter_packs sp ON sp.id = spv.starter_pack_id
-    WHERE spv.id = ${variantId}
-      AND sp.slug = ${slug}
-      AND sp.is_published = true
+  const [ql] = await sql`
+    SELECT id, title
+    FROM quick_lists
+    WHERE slug = ${slug} AND is_published = true
   `;
 
-  if (!variant) {
+  if (!ql) {
     return NextResponse.json(
-      { error: "Variant not found", success: false, status: 404 },
+      { error: "Quick list not found", success: false, status: 404 },
       { status: 404 }
     );
   }
 
-  const packTitle = (variant.pack_title as string).trim();
+  const listTitle = (ql.title as string).trim();
   const name = (participantName as string).trim();
 
-  const variantItems = await sql`
-    SELECT name, quantity
-    FROM starter_pack_variant_items
-    WHERE variant_id = ${variantId}
+  const qlItems = await sql`
+    SELECT name, quantity, unit
+    FROM quick_list_items
+    WHERE quick_list_id = ${ql.id as string}
     ORDER BY position
   `;
 
@@ -79,7 +75,7 @@ export async function POST(
       // 1. Create Quick Shop session (list_id = NULL)
       db`
         INSERT INTO sessions (id, title)
-        VALUES (${sessionId}, ${packTitle})
+        VALUES (${sessionId}, ${listTitle})
       `,
       // 2. Create host participant
       db`
@@ -88,26 +84,35 @@ export async function POST(
       `,
     ]);
 
-    // 3. Copy variant items into session items (parallel, outside transaction)
-    if (variantItems.length > 0) {
-      const itemInserts = variantItems.map((item) =>
-        db`
+    // 3. Copy quick list items into session items
+    //    Quantity/unit embedded in name; session quantity = 1
+    if (qlItems.length > 0) {
+      const itemInserts = qlItems.map((item) => {
+        const qty = item.quantity as number;
+        const unit = item.unit as string | null;
+        const rawName = item.name as string;
+        const displayName =
+          qty > 1 || unit
+            ? `${qty}${unit ? unit : ""} ${rawName}`.trim()
+            : rawName;
+
+        return db`
           INSERT INTO items (id, session_id, name, quantity, state, created_by, updated_by)
           VALUES (
             ${generateItemId()},
             ${sessionId},
-            ${item.name as string},
-            ${item.quantity as number},
+            ${displayName},
+            ${1},
             'active',
             ${participantId},
             ${participantId}
           )
-        `
-      );
+        `;
+      });
       await Promise.all(itemInserts);
     }
 
-    const responseBody: PostStarterPackStartResponse = {
+    const responseBody: PostQuickListStartResponse = {
       session_token: sessionId,
       participant: {
         id: participantId,
@@ -122,11 +127,11 @@ export async function POST(
     };
 
     return NextResponse.json(
-      { data: responseBody, success: true, status: 201, message: "Session created from starter pack" },
+      { data: responseBody, success: true, status: 201, message: "Session created from quick list" },
       { status: 201 }
     );
   } catch (err) {
-    console.error(`[POST /api/starter-packs/${slug}/variants/${variantId}] failed:`, err);
+    console.error(`[POST /api/quick-lists/${slug}/start] failed:`, err);
     return NextResponse.json(
       { error: "Failed to create session", success: false, status: 500 },
       { status: 500 }

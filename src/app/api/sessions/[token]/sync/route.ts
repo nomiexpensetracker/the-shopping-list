@@ -34,7 +34,6 @@ export async function GET(
           s.title,
           s.created_at,
           s.last_active,
-          s.list_id,
           COALESCE(
             json_agg(
               json_build_object(
@@ -49,7 +48,7 @@ export async function GET(
         FROM sessions s
         LEFT JOIN session_participants sp ON s.id = sp.session_id
         WHERE s.id = ${token}
-        GROUP BY s.id, s.title, s.created_at, s.last_active, s.list_id
+        GROUP BY s.id, s.title, s.created_at, s.last_active
       )
       SELECT
         -- session fields
@@ -57,7 +56,6 @@ export async function GET(
         sd.title,
         sd.created_at,
         sd.last_active,
-        sd.list_id,
         sd.participants,
 
         -- summary fields (derived from item_data — no extra table scans)
@@ -97,7 +95,7 @@ export async function GET(
         title:        row.title,
         created_at:   row.created_at,
         last_active:  row.last_active,
-        list_id:      row.list_id,
+        list_id:      null,
         participants: row.participants,
       },
       items: row.items ?? [],

@@ -92,17 +92,15 @@ export interface List {
 }
 
 // ============================================================
-// Starter Packs
+// Quick Lists
 // ============================================================
 
-export interface StarterPack {
+export interface QuickList {
   id: string;
   slug: string;
   title: string;
   description: string | null;
   category: string | null;
-  cuisine: string | null;
-  difficulty: string | null;
   locale: string;
   is_published: boolean;
   is_featured: boolean;
@@ -110,19 +108,9 @@ export interface StarterPack {
   updated_at: string;
 }
 
-export interface StarterPackVariant {
+export interface QuickListItem {
   id: string;
-  starter_pack_id: string;
-  name: string;
-  locale: string;
-  description: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface StarterPackVariantItem {
-  id: string;
-  variant_id: string;
+  quick_list_id: string;
   name: string;
   quantity: number;
   unit: string | null;

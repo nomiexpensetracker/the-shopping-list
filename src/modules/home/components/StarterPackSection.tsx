@@ -11,7 +11,7 @@ const StarterPackSection = () => {
         Quick List
       </p>
       <Link
-        href="/app/starter-packs"
+        href="/app/quick-lists"
         className="flex items-center justify-between gap-4 rounded-2xl px-5 py-4 transition active:opacity-70"
         style={{
           background: "var(--card)",
@@ -22,7 +22,7 @@ const StarterPackSection = () => {
           <span className="text-2xl">🛍️</span>
           <div className="min-w-0">
             <p className="text-sm font-bold truncate" style={{ color: "var(--foreground)" }}>
-              Browse Starter Packs
+              Browse Quick Lists
             </p>
             <p className="text-xs truncate" style={{ color: "var(--muted)" }}>
               Ready-made lists for any occasion

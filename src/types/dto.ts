@@ -58,50 +58,38 @@ export interface ListRegistryEntry {
 }
 
 // ============================================================
-// Starter Packs
+// Quick Lists
 // ============================================================
 
-export interface StarterPackSummary {
+export interface QuickListSummary {
   id: string;
   slug: string;
   title: string;
   description: string | null;
   category: string | null;
-  cuisine: string | null;
-  difficulty: string | null;
   is_featured: boolean;
 }
 
-export interface StarterPackVariantWithItems {
-  id: string;
-  name: string;
-  locale: string;
-  description: string | null;
-  items: import('./dao').StarterPackVariantItem[];
-}
-
-export interface StarterPackDetailResponse {
+export interface QuickListDetailResponse {
   id: string;
   slug: string;
   title: string;
   description: string | null;
   category: string | null;
-  cuisine: string | null;
-  difficulty: string | null;
   locale: string;
   is_featured: boolean;
   updated_at: string;
-  variants: StarterPackVariantWithItems[];
+  items: import('./dao').QuickListItem[];
 }
 
-export interface GetStarterPacksResponse {
-  packs: StarterPackSummary[];
+export interface GetQuickListsResponse {
+  lists: QuickListSummary[];
   total: number;
   page: number;
   limit: number;
 }
 
-export interface PostStarterPackStartResponse {
+export interface PostQuickListStartResponse {
   session_token: string;
   participant: import('./dao').Participant;
 }
