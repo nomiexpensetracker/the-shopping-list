@@ -5,25 +5,25 @@ export const dynamic = "force-dynamic";
 import Image from "next/image";
 import useSWR from "swr";
 import { use, useMemo, useState } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useAdaptivePollingInterval } from "@/lib/hooks";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 import type { Item, SyncDataType } from "@/types/dao";
+import { CommonResponse, GetSessionSyncResponse, PostItemRequest } from "@/types/dto";
 
 import ItemCard from "@/components/ItemCard";
 import MobileGate from "@/components/MobileGate";
 import InviteModal from "@/components/InviteModal";
 import CollectModal from "@/components/CollectModal";
+import CommonHeader from "@/components/CommonHeader";
 import EditItemModal from "@/components/EditItemModal";
 import SessionHeader from "@/components/SessionHeader";
 import EndSessionModal from "@/components/EndSessionModal";
 import ParticipantToast from "@/components/ParticipantToast";
 import UpdateSessionModal from "@/components/UpdateSessionModal";
-import { CartIcon, AddIcon } from "@/components/icons";
+import { AddIcon } from "@/components/icons";
 
-import { CommonResponse, GetSessionSyncResponse, PostItemRequest } from "@/types/dto";
 import { useCurrency } from "@/components/CurrencyProvider";
-import CommonHeader from "@/components/CommonHeader";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -54,7 +54,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
-      dedupingInterval: 10_000,
+      dedupingInterval: 10_000, // 10 seconds
       onSuccess: () => setSyncStatus("idle"),
       onError: () => setSyncStatus("error"),
       onLoadingSlow: () => setSyncStatus("syncing"),
@@ -71,15 +71,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
     if (!session || !currentUserId) return [];
 
     return (session?.data?.participants ?? []).filter(p => p.id !== currentUserId);
-  }, [session, currentUserId]);
-
-  // define user role
-  const isUserHost = useMemo(() => {
-    if (!session || !currentUserId) return false;
-
-    const currentUser = (session.data?.participants ?? []).find((participant) => participant.id === currentUserId)
-    if (currentUser && currentUser.role === 'host') return true;
-    return false;
   }, [session, currentUserId]);
 
   const refetchAll = () => {
@@ -333,19 +324,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
               />
             )}
           </div>
-        )}
-
-        {/* Floating Action Button — receipt (cart) */}
-        {isUserHost && collectedItems.length > 0 && (
-          <button
-            id="fab-cart-action-button"
-            aria-label="View receipt"
-            className="fixed bottom-28 right-6 size-14 rounded-full flex items-center justify-center shadow"
-            style={{ background: "var(--brand-light)" }}
-            onClick={() => router.push(`/app/session/${token}/receipt`)}
-          >
-            <CartIcon fill="var(--brand-dark)" />
-          </button>
         )}
 
         {/* Floating Action Button — add item */}

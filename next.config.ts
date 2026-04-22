@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
         destination: "/app/quick-lists/:slug",
         permanent: true,
       },
+      {
+        source: "/app/session/:token/receipt",
+        destination: "/app/session/:token",
+        permanent: true,
+      },
     ];
   },
 };
