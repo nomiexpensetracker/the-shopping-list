@@ -29,6 +29,7 @@ export async function GET(
             'list_id',    li.list_id,
             'name',       li.name,
             'quantity',   li.quantity,
+            'unit',       li.unit,
             'state',      li.state,
             'created_at', li.created_at,
             'updated_at', li.updated_at

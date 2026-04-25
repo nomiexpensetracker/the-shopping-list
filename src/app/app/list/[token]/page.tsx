@@ -25,7 +25,7 @@ function toItem(li: ListItem): Item {
     id: li.id,
     session_id: "",
     name: li.name,
-    description: null,
+    description: li.unit ?? null,
     quantity: li.quantity,
     state: "active",
     price: 0,

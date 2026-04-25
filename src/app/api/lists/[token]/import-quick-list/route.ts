@@ -51,14 +51,14 @@ export async function POST(
     const id = generateListItemId();
     const qty = item.quantity as number;
     const unit = item.unit as string | null;
-    const rawName = item.name as string;
-    // Embed quantity+unit into name; list item quantity = 1
-    const displayName =
+    const name = item.name as string;
+    // Build a unit description string (e.g. "500 gr", "2 packs") stored separately from the name
+    const unitDescription =
       qty > 1 || unit
-        ? `${qty}${unit ? unit : ""} ${rawName}`.trim()
-        : rawName;
+        ? `${qty}${unit ? ` ${unit}` : ""}`.trim()
+        : null;
 
-    return db`INSERT INTO list_items (id, list_id, name, quantity) VALUES (${id}, ${token}, ${displayName}, ${1})`;
+    return db`INSERT INTO list_items (id, list_id, name, quantity, unit) VALUES (${id}, ${token}, ${name}, ${1}, ${unitDescription})`;
   });
 
   await db.transaction([

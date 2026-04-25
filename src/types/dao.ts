@@ -78,6 +78,7 @@ export interface ListItem {
   list_id: string;
   name: string;
   quantity: number;
+  unit: string | null;
   state: ListItemState;
   created_at: string;
   updated_at: string;
