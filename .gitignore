@@ -48,4 +48,8 @@ next-env.d.ts
 .idea/
 .vscode/
 *.swp
+
+# database — schema and seed files are sensitive; keep out of repo
+src/db/
+src/database/
 *.swo
