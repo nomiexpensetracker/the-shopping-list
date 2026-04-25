@@ -1,23 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+function getIsMobileViewport() {
+  return window.innerWidth < 768;
+}
+
+function subscribeToResize(callback: () => void) {
+  window.addEventListener("resize", callback);
+  return () => window.removeEventListener("resize", callback);
+}
 
 export default function MobileGate({ children }: { children: React.ReactNode }) {
-  const [isMobile, setIsMobile] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    function check() {
-      setIsMobile(window.innerWidth < 768);
-    }
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  if (isMobile === null) {
-    // SSR / hydration — render nothing to avoid flash
-    return null;
-  }
+  // Server snapshot = true: middleware already redirects desktop UA users,
+  // so the server can safely assume mobile and render content into the initial HTML.
+  // Client: live viewport-width check with resize subscription.
+  const isMobile = useSyncExternalStore(
+    subscribeToResize,
+    getIsMobileViewport,
+    () => true,
+  );
 
   if (!isMobile) {
     return (

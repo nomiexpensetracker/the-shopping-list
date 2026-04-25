@@ -4,11 +4,7 @@ import { useEffect, useState } from "react";
 import { MoonIcon, SunIcon } from "./icons";
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(() => {
-    const stored = localStorage.getItem("the_shopping_list_app_theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return stored === "dark" || (!stored && prefersDark);
-  });
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
