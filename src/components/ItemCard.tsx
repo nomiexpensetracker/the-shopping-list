@@ -6,7 +6,7 @@ import type { Item, Participant } from "@/types/dao";
 import { getUserColor } from "@/lib/utils";
 import { useCurrency } from "@/components/CurrencyProvider";
 
-import { AddIcon, ChevronIcon, RemoveIcon, TrashIcon, UploadIcon } from "./icons";
+import { AddIcon, ChevronIcon, EditIcon, RemoveIcon, TrashIcon, UploadIcon } from "./icons";
 import { useDebounce } from "@/lib/hooks";
 
 interface Props {
@@ -14,7 +14,9 @@ interface Props {
   items: Item[];
   participants: Participant[];
   defaultExpanded?: boolean;
+  showHeader?: boolean;
   onEdit?: (item: Item) => void;
+  onEditCollected?: (item: Item) => void;
   onDelete?: (item: Item) => void;
   onCollect?: (item: Item) => void;
   onRestore?: (item: Item) => void;
@@ -26,9 +28,11 @@ const ItemCard = ({
   onCollect,
   onDelete,
   onEdit,
+  onEditCollected,
   onRestore,
   participants,
   defaultExpanded = true,
+  showHeader = true,
 }: Props) => {
   const { formatAmount } = useCurrency();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -47,34 +51,36 @@ const ItemCard = ({
       style={{ background: "var(--card)", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
     >
       {/* Collapsible header */}
-      <button
-        className="w-full flex items-center justify-between px-4 py-4"
-        style={{ background: "var(--main-bg)" }}
-        onClick={() => setIsExpanded((prev) => !prev)}
-        aria-expanded={isExpanded}
-        aria-controls={`item-group-${title}`}
-      >
-        <div className="flex items-center gap-1 min-w-0">
-          <span className="text-lg font-bold" style={{ color: "var(--brand)" }}>
-            {title}
-          </span>
-          <span
-            className="text-base font-bold w-6 text-center shrink-0"
-            style={{ color: "var(--brand)" }}
-          >
-            ({items.length})
-          </span>
-        </div>
-        <div
-          style={{
-            color: "var(--muted)",
-            transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 0.2s ease",
-          }}
+      {showHeader && (
+        <button
+          className="w-full flex items-center justify-between px-4 py-4"
+          style={{ background: "var(--main-bg)" }}
+          onClick={() => setIsExpanded((prev) => !prev)}
+          aria-expanded={isExpanded}
+          aria-controls={`item-group-${title}`}
         >
-          <ChevronIcon fill="#636262" />
-        </div>
-      </button>
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="text-lg font-bold" style={{ color: "var(--brand)" }}>
+              {title}
+            </span>
+            <span
+              className="text-base font-bold w-6 text-center shrink-0"
+              style={{ color: "var(--brand)" }}
+            >
+              ({items.length})
+            </span>
+          </div>
+          <div
+            style={{
+              color: "var(--muted)",
+              transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease",
+            }}
+          >
+            <ChevronIcon fill="#636262" />
+          </div>
+        </button>
+      )}
 
       {/* Items */}
       {isExpanded && (
@@ -180,11 +186,30 @@ const ItemCard = ({
                 )}
 
                 {item.state === 'collected' && (
-                  <span
-                    className="text-base font-bold w-6 text-center shrink-0" style={{ color: "var(--brand)" }}
-                  >
-                    {item.quantity}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {onEditCollected && (
+                      <div className="w-fit h-10 py-1 px-2 rounded-lg flex items-center justify-between gap-2" style={{ background: "var(--background)" }}>
+
+                        <span
+                          className="text-base font-bold w-6 text-center shrink-0"
+                          style={{ color: "var(--foreground)" }}
+                        >
+                          {item.quantity}
+                        </span>
+                        <div className='size-6'>
+                          <button
+                            id="decrease-quantity"
+                            aria-label="Edit collected item"
+                            onClick={() => onEditCollected(item)}
+                            className="size-6 text-2xl font-bold flex items-center justify-center"
+                          >
+                            <EditIcon fill="#636262" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
                 )}
               </div>
             );

@@ -41,6 +41,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   const [syncStatus, setSyncStatus] = useState<SyncDataType>("idle");
   const [showEndModal, setShowEndModal] = useState(false);
   const [endingSession, setEndingSession] = useState(false);
+  const [activeTab, setActiveTab] = useState<"to-collect" | "collected" | "deleted">("to-collect");
 
   const pollingInterval = useAdaptivePollingInterval();
 
@@ -292,36 +293,97 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           </div>
         )}
 
-        {/* List */}
+        {/* Tabs + item list */}
         {activeItems.length > 0 && (
-          <div className="flex flex-col flex-1 gap-4 overflow-y-auto">
-            {addedItems.length > 0 && (
-              <ItemCard
-                title="To Collect"
-                items={addedItems}
-                participants={session?.data.participants || []}
-                onEdit={updateItem}
-                onDelete={deleteItem}
-                onCollect={(i) => setCollectTarget(i)}
-              />
+          <div className="flex flex-col flex-1 gap-3 overflow-y-auto">
+            {/* Tab bar */}
+            <div
+              className="flex rounded-2xl overflow-hidden"
+              style={{ background: "var(--card)" }}
+              role="tablist"
+              aria-label="Item groups"
+            >
+              {(
+                [
+                  { key: "to-collect", label: "To Collect", count: addedItems.length },
+                  { key: "collected",  label: "Collected",  count: collectedItems.length },
+                  { key: "deleted",    label: "Deleted",    count: deletedItems.length },
+                ] as const
+              ).map(({ key, label, count }) => (
+                <button
+                  key={key}
+                  role="tab"
+                  aria-selected={activeTab === key}
+                  onClick={() => setActiveTab(key)}
+                  className="flex-1 py-3 text-sm font-semibold transition-colors relative"
+                  style={{
+                    color: activeTab === key ? "var(--background)" : "var(--muted)",
+                    background: activeTab === key ? "var(--brand)" : "transparent",
+                    borderRadius: "1rem",
+                  }}
+                >
+                  {label}
+                  {count > 0 && (
+                    <span
+                      className="ml-1 text-xs font-bold"
+                      style={{ color: activeTab === key ? "var(--background)" : "var(--muted)" }}
+                    >
+                      ({count})
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab panels */}
+            {activeTab === "to-collect" && (
+              addedItems.length > 0 ? (
+                <ItemCard
+                  title="To Collect"
+                  items={addedItems}
+                  participants={session?.data.participants || []}
+                  showHeader={false}
+                  onEdit={updateItem}
+                  onDelete={deleteItem}
+                  onCollect={(i) => setCollectTarget(i)}
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center py-16">
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>All items collected!</p>
+                </div>
+              )
             )}
 
-            {collectedItems.length > 0 && (
-              <ItemCard
-                title="Collected"
-                items={collectedItems}
-                participants={session?.data.participants || []}
-              />
+            {activeTab === "collected" && (
+              collectedItems.length > 0 ? (
+                <ItemCard
+                  title="Collected"
+                  items={collectedItems}
+                  participants={session?.data.participants || []}
+                  showHeader={false}
+                  onEditCollected={(i) => setCollectTarget(i)}
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center py-16">
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>No collected items yet.</p>
+                </div>
+              )
             )}
 
-            {deletedItems.length > 0 && (
-              <ItemCard
-                title="Deleted"
-                items={deletedItems}
-                defaultExpanded={false}
-                participants={session?.data.participants || []}
-                onRestore={restoreItem}
-              />
+            {activeTab === "deleted" && (
+              deletedItems.length > 0 ? (
+                <ItemCard
+                  title="Deleted"
+                  items={deletedItems}
+                  participants={session?.data.participants || []}
+                  showHeader={false}
+                  onRestore={restoreItem}
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center py-16">
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>No deleted items.</p>
+                </div>
+              )
             )}
           </div>
         )}
