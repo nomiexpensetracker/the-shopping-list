@@ -85,25 +85,26 @@ export async function POST(
     ]);
 
     // 3. Copy quick list items into session items
-    //    Quantity/unit embedded in name; session quantity = 1
+    //    Unit/quantity stored as description; session quantity = 1
     if (qlItems.length > 0) {
       const itemInserts = qlItems.map((item) => {
         const qty = item.quantity as number;
         const unit = item.unit as string | null;
-        const rawName = item.name as string;
-        const displayName =
+        const name = item.name as string;
+        const unitDescription =
           qty > 1 || unit
-            ? `${qty}${unit ? unit : ""} ${rawName}`.trim()
-            : rawName;
+            ? `${qty}${unit ? ` ${unit}` : ""}`.trim()
+            : null;
 
         return db`
-          INSERT INTO items (id, session_id, name, quantity, state, created_by, updated_by)
+          INSERT INTO items (id, session_id, name, quantity, state, description, created_by, updated_by)
           VALUES (
             ${generateItemId()},
             ${sessionId},
-            ${displayName},
+            ${name},
             ${1},
             'active',
+            ${unitDescription},
             ${participantId},
             ${participantId}
           )
