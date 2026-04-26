@@ -32,15 +32,16 @@ export async function POST(
 
   try {
     await sql`
-      INSERT INTO session_participants (id, name, color, session_id)
-      VALUES (${participantId}, ${name.trim()}, ${participantColor}, ${token})
+      INSERT INTO session_participants (id, name, color, session_id, status)
+      VALUES (${participantId}, ${name.trim()}, ${participantColor}, ${token}, 'pending')
     `;
   
     return NextResponse.json({
       data: {
         id: participantId,
         name: name.trim(),
-        color: participantColor
+        color: participantColor,
+        status: 'pending' as const,
       },
       status: 201,
       success: true,

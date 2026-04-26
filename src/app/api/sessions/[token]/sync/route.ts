@@ -42,9 +42,19 @@ export async function GET(
                 'role',  sp.role,
                 'color', sp.color
               )
-            ) FILTER (WHERE sp.id IS NOT NULL),
+            ) FILTER (WHERE sp.id IS NOT NULL AND sp.status = 'approved'),
             '[]'::json
-          ) AS participants
+          ) AS participants,
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id',    sp.id,
+                'name',  sp.name,
+                'color', sp.color
+              )
+            ) FILTER (WHERE sp.id IS NOT NULL AND sp.status = 'pending'),
+            '[]'::json
+          ) AS pending_participants
         FROM sessions s
         LEFT JOIN session_participants sp ON s.id = sp.session_id
         WHERE s.id = ${token}
@@ -57,6 +67,7 @@ export async function GET(
         sd.created_at,
         sd.last_active,
         sd.participants,
+        sd.pending_participants,
 
         -- summary fields (derived from item_data — no extra table scans)
         sd.id                                                              AS session_id,
@@ -98,6 +109,7 @@ export async function GET(
         list_id:      null,
         participants: row.participants,
       },
+      pending_participants: row.pending_participants ?? [],
       items: row.items ?? [],
       summary: {
         session_id:                   String(row.session_id),

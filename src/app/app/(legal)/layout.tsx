@@ -1,3 +1,4 @@
+import CommonFooter from "@/components/CommonFooter";
 import CommonHeader from "@/components/CommonHeader";
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
@@ -12,6 +13,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           {children}
         </article>
       </div>
+      <CommonFooter />
     </div>
   );
 }

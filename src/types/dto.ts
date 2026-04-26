@@ -33,6 +33,7 @@ export interface GetSessionDetailResponse {
 /** Shape returned by GET /api/sessions/[token]/sync */
 export interface GetSessionSyncResponse {
   session: GetSessionDetailResponse
+  pending_participants: Pick<Participant, 'id' | 'name' | 'color'>[]
   items: Item[]
   summary: Summary
 }

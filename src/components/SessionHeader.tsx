@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { SyncDataType } from '@/types/dao';
 import { GetSessionDetailResponse } from '@/types/dto';
+
 import ParticipantAvatars from './ParticipantAvatars';
-import { ShareIcon, LogOutIcon, MoonIcon, SunIcon } from './icons';
-import { RefreshIcon } from './icons';
+import { ShareIcon, LogOutIcon, MoonIcon, SunIcon, RefreshIcon } from './icons';
 
 interface HeaderProps {
+  isHost: boolean;
   session: GetSessionDetailResponse;
   syncStatus: SyncDataType;
   onShare: () => void;
@@ -17,7 +18,7 @@ interface HeaderProps {
   onRefresh?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ session, syncStatus, onShare, onEnd, onRefresh }) => {
+const Header: React.FC<HeaderProps> = ({ isHost, session, syncStatus, onShare, onEnd, onRefresh }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [dark, setDark] = useState(() => {
@@ -131,15 +132,17 @@ const Header: React.FC<HeaderProps> = ({ session, syncStatus, onShare, onEnd, on
                 Share Session
               </button>
               <div style={{ borderTop: "1px solid var(--border)" }} />
-              <button
-                role="menuitem"
-                onClick={() => { onEnd(); setMenuOpen(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-left transition active:opacity-70"
-                style={{ color: "var(--foreground)" }}
-              >
-                <LogOutIcon fill="var(--foreground)" />
-                End Session
-              </button>
+              {isHost && (
+                <button
+                  role="menuitem"
+                  onClick={() => { onEnd(); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-left transition active:opacity-70"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  <LogOutIcon fill="var(--foreground)" />
+                  End Session
+                </button>
+              )}
               <div style={{ borderTop: "1px solid var(--border)" }} />
               <button
                 role="menuitem"
@@ -148,7 +151,7 @@ const Header: React.FC<HeaderProps> = ({ session, syncStatus, onShare, onEnd, on
                 style={{ color: "var(--foreground)" }}
               >
                 {dark ? <MoonIcon fill="var(--foreground)" /> : <SunIcon fill="var(--foreground)" />}
-                {dark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                {dark ? "Light Mode" : "Dark Mode"}
               </button>
             </div>
           )}

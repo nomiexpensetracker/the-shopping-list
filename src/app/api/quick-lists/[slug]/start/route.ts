@@ -120,6 +120,7 @@ export async function POST(
         name,
         color: participantColor,
         role: "host",
+        status: "approved" as const,
         joined_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         session_id: sessionId,

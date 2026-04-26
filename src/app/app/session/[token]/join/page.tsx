@@ -32,13 +32,13 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
       if (!data.success) throw new Error("Failed to create session");
 
       const participantData = data.data;
-      // store data in localStorage for later use in session page
+      // store data in localStorage for later use in session page / waiting room
       localStorage.setItem(`participant_${token}_id`, participantData.id);
       localStorage.setItem(`participant_${token}_name`, participantData.name);
       localStorage.setItem(`participant_${token}_color`, participantData.color);
 
-      // navigate to session page
-      router.push("/app/session/" + token);
+      // navigate to waiting room — host must approve before entering session
+      router.push("/app/session/" + token + "/waiting");
       
     } catch (error) {
       setError(`Something went wrong. Please try again. ${JSON.stringify(error)}`);

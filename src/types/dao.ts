@@ -32,6 +32,7 @@ export interface Participant {
   name: string;
   role: ParticipantRole;
   color: string;
+  status: 'pending' | 'approved';
   joined_at: string;
   updated_at: string;
   session_id: string;

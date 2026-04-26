@@ -12,6 +12,7 @@ import type { Item, SyncDataType } from "@/types/dao";
 import { CommonResponse, GetSessionSyncResponse, PostItemRequest } from "@/types/dto";
 
 import ItemCard from "@/components/ItemCard";
+import HostRoom from "@/components/HostRoom";
 import MobileGate from "@/components/MobileGate";
 import InviteModal from "@/components/InviteModal";
 import CollectModal from "@/components/CollectModal";
@@ -55,7 +56,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
-      dedupingInterval: 10_000, // 10 seconds
+      dedupingInterval: 100_000, // 2 mins deduping to avoid multiple requests piling up when the host takes a while to respond to a join request, which would cause multiple participants' polls to hit the server at the same time
       onSuccess: () => setSyncStatus("idle"),
       onError: () => setSyncStatus("error"),
       onLoadingSlow: () => setSyncStatus("syncing"),
@@ -73,6 +74,18 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
 
     return (session?.data?.participants ?? []).filter(p => p.id !== currentUserId);
   }, [session, currentUserId]);
+
+  const isHost = useMemo(() => {
+    if (!currentUserId) return false;
+    return (session?.data?.participants ?? []).some(
+      (p) => p.id === currentUserId && p.role === "host"
+    );
+  }, [session, currentUserId]);
+
+  const pendingParticipants = useMemo(
+    () => syncData?.data?.pending_participants ?? [],
+    [syncData]
+  );
 
   const refetchAll = () => {
     setSyncStatus("syncing");
@@ -220,6 +233,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
       {/* SessionHeader */}
       {session && session.data && (
         <SessionHeader
+          isHost={isHost}
           session={session.data}
           syncStatus={syncStatus}
           onShare={() => setShowInvite(true)}
@@ -267,6 +281,13 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           </div>
         )}
 
+        {/* Participant Toast */}
+        {session?.data && filteredParticipants.length > 0 && (
+          <div className="w-full">
+            <ParticipantToast participants={filteredParticipants} />
+          </div>
+        )}
+
         {items && activeItems.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
             <div
@@ -283,13 +304,6 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
                 Start adding items together! Your session is active and ready for collaborative shopping experience.
               </p>
             </div>
-          </div>
-        )}
-
-        {/* Participant Toast */}
-        {session?.data && filteredParticipants.length > 0 && (
-          <div className="w-full">
-            <ParticipantToast participants={filteredParticipants} />
           </div>
         )}
 
@@ -449,6 +463,15 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
           onConfirm={handleEndSession}
           onClose={() => setShowEndModal(false)}
           loading={endingSession}
+        />
+      )}
+
+      {isHost && pendingParticipants.length > 0 && (
+        <HostRoom
+          token={token}
+          pendingParticipants={pendingParticipants}
+          hostId={currentUserId ?? ""}
+          onUpdate={refetchAll}
         />
       )}
     </MobileGate>
