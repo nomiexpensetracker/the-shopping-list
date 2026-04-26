@@ -35,6 +35,12 @@ export async function POST(
       ? (body as Record<string, unknown>).participantName
       : "";
 
+  const rawServings =
+    body && typeof body === "object" && "servings" in body
+      ? (body as Record<string, unknown>).servings
+      : 1;
+  const servings = typeof rawServings === "number" && rawServings >= 1 ? Math.floor(rawServings) : 1;
+
   if (!isValidParticipantName(participantName) || (participantName as string).trim() === "") {
     return NextResponse.json(
       { error: "Participant name is required (max 26 chars)", success: false, status: 400 },
@@ -88,7 +94,7 @@ export async function POST(
     //    Unit/quantity stored as description; session quantity = 1
     if (qlItems.length > 0) {
       const itemInserts = qlItems.map((item) => {
-        const qty = item.quantity as number;
+        const qty = (item.quantity as number) * servings;
         const unit = item.unit as string | null;
         const name = item.name as string;
         const unitDescription =

@@ -7,11 +7,12 @@ import { addToListsRegistry } from "@/lib/lists";
 interface Props {
   quickListId: string;
   packTitle: string;
+  servings?: number;
 }
 
 type Step = "idle" | "loading" | "error";
 
-export default function AddToMyListsButton({ quickListId, packTitle }: Props) {
+export default function AddToMyListsButton({ quickListId, packTitle, servings = 1 }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("idle");
   const [error, setError] = useState("");
@@ -37,7 +38,7 @@ export default function AddToMyListsButton({ quickListId, packTitle }: Props) {
       const importRes = await fetch(`/api/lists/${listId}/import-quick-list`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quick_list_id: quickListId }),
+        body: JSON.stringify({ quick_list_id: quickListId, servings }),
       });
       const importData = await importRes.json();
       if (!importRes.ok || !importData.success) {

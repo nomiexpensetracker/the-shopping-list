@@ -5,9 +5,7 @@ import { sql } from "@/lib/db";
 import type { QuickListItem } from "@/types/dao";
 import type { QuickListDetailResponse } from "@/types/dto";
 
-import AddToMyListsButton from "@/components/AddToMyListsButton";
 import StarterPacksTopBar from "@/components/StarterPacksTopBar";
-import StartShoppingButton from "@/components/StartShoppingButton";
 import QuickListServings from "@/components/QuickListServings";
 
 export const dynamic = "force-dynamic";
@@ -132,35 +130,13 @@ export default async function QuickListDetailPage(
         </div>
 
         <div className="max-w-3xl mx-auto p-6 space-y-12">
-          {/* Items with servings scaler */}
-          <QuickListServings items={ql.items} />
-
-          {/* CTA */}
-          <section
-            className="rounded-2xl p-6 text-center"
-            style={{
-              background: "var(--brand-light)",
-              border: "1px solid var(--brand)",
-            }}
-          >
-            <h2 className="text-lg font-bold mb-2 text-foreground">
-              Ready to shop?
-            </h2>
-            <p className="text-sm text-muted mb-5">
-              Create a shopping session from this list and invite friends or family.
-            </p>
-            <div className="flex flex-col gap-2">
-              <StartShoppingButton
-                quickListId={ql.id}
-                packSlug={ql.slug}
-                packTitle={ql.title}
-              />
-              <AddToMyListsButton
-                quickListId={ql.id}
-                packTitle={ql.title}
-              />
-            </div>
-          </section>
+          {/* Items with servings scaler + CTA */}
+          <QuickListServings
+            items={ql.items}
+            quickListId={ql.id}
+            packSlug={ql.slug}
+            packTitle={ql.title}
+          />
         </div>
       </div>
     </>

@@ -17,11 +17,12 @@ interface Props {
   quickListId: string;
   packSlug: string;
   packTitle: string;
+  servings?: number;
 }
 
 type Step = "idle" | "modal" | "qr-desktop" | "loading";
 
-export default function StartShoppingButton({ quickListId: _quickListId, packSlug, packTitle }: Props) {
+export default function StartShoppingButton({ quickListId: _quickListId, packSlug, packTitle, servings = 1 }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("idle");
   const [name, setName] = useState("");
@@ -55,7 +56,7 @@ export default function StartShoppingButton({ quickListId: _quickListId, packSlu
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ participantName: trimmed, list_id: _quickListId }),
+          body: JSON.stringify({ participantName: trimmed, list_id: _quickListId, servings }),
         }
       );
 

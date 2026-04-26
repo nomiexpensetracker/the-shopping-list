@@ -3,12 +3,17 @@
 import { useState } from "react";
 import type { QuickListItem } from "@/types/dao";
 import { AddIcon, RemoveIcon } from "@/components/icons";
+import StartShoppingButton from "@/components/StartShoppingButton";
+import AddToMyListsButton from "@/components/AddToMyListsButton";
 
 interface Props {
   items: QuickListItem[];
+  quickListId: string;
+  packSlug: string;
+  packTitle: string;
 }
 
-export default function QuickListServings({ items }: Props) {
+export default function QuickListServings({ items, quickListId, packSlug, packTitle }: Props) {
   const [servings, setServings] = useState(1);
 
   const decrease = () => setServings((s) => Math.max(1, s - 1));
@@ -83,6 +88,33 @@ export default function QuickListServings({ items }: Props) {
           })}
         </ul>
       )}
+
+      {/* CTA */}
+      <div
+        className="mt-10 rounded-2xl p-6 text-center"
+        style={{
+          background: "var(--brand-light)",
+          border: "1px solid var(--brand)",
+        }}
+      >
+        <h2 className="text-lg font-bold mb-2 text-foreground">Ready to shop?</h2>
+        <p className="text-sm mb-5" style={{ color: "var(--muted)" }}>
+          Create a shopping session from this list and invite friends or family.
+        </p>
+        <div className="flex flex-col gap-2">
+          <StartShoppingButton
+            quickListId={quickListId}
+            packSlug={packSlug}
+            packTitle={packTitle}
+            servings={servings}
+          />
+          <AddToMyListsButton
+            quickListId={quickListId}
+            packTitle={packTitle}
+            servings={servings}
+          />
+        </div>
+      </div>
     </section>
   );
 }

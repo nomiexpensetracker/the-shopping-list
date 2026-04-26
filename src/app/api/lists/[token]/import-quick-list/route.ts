@@ -24,7 +24,8 @@ export async function POST(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { quick_list_id } = body;
+  const { quick_list_id, servings: rawServings } = body;
+  const servings = typeof rawServings === "number" && rawServings >= 1 ? Math.floor(rawServings) : 1;
 
   if (!quick_list_id || typeof quick_list_id !== "string") {
     return NextResponse.json({ error: "quick_list_id is required" }, { status: 400 });
@@ -49,7 +50,7 @@ export async function POST(
   const db = getClient();
   const inserts = items.map((item) => {
     const id = generateListItemId();
-    const qty = item.quantity as number;
+    const qty = (item.quantity as number) * servings;
     const unit = item.unit as string | null;
     const name = item.name as string;
     // Build a unit description string (e.g. "500 gr", "2 packs") stored separately from the name
