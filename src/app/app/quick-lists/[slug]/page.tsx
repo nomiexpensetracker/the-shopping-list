@@ -8,6 +8,7 @@ import type { QuickListDetailResponse } from "@/types/dto";
 import AddToMyListsButton from "@/components/AddToMyListsButton";
 import StarterPacksTopBar from "@/components/StarterPacksTopBar";
 import StartShoppingButton from "@/components/StartShoppingButton";
+import QuickListServings from "@/components/QuickListServings";
 
 export const dynamic = "force-dynamic";
 
@@ -131,19 +132,8 @@ export default async function QuickListDetailPage(
         </div>
 
         <div className="max-w-3xl mx-auto p-6 space-y-12">
-          {/* Items */}
-          <section>
-            <h2 className="text-xl font-bold mb-5 text-foreground">Items</h2>
-            {ql.items.length === 0 ? (
-              <p className="text-muted">No items yet.</p>
-            ) : (
-              <ul className="divide-y divide-border">
-                {ql.items.map((item) => (
-                  <ItemRow key={item.id} item={item} />
-                ))}
-              </ul>
-            )}
-          </section>
+          {/* Items with servings scaler */}
+          <QuickListServings items={ql.items} />
 
           {/* CTA */}
           <section
@@ -174,26 +164,6 @@ export default async function QuickListDetailPage(
         </div>
       </div>
     </>
-  );
-}
-
-function ItemRow({ item }: { item: QuickListItem }) {
-  return (
-    <li className="flex items-center justify-between py-3 gap-4">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "var(--brand)" }} />
-        <span className="text-sm font-medium truncate text-foreground">
-          {item.name}
-        </span>
-        {item.is_optional && (
-          <span className="shrink-0 text-xs text-muted italic">(optional)</span>
-        )}
-      </div>
-      <span className="shrink-0 text-sm text-muted tabular-nums">
-        {item.quantity}
-        {item.unit ? ` ${item.unit}` : ""}
-      </span>
-    </li>
   );
 }
 
