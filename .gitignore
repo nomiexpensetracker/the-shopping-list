@@ -11,6 +11,13 @@ node_modules
 /.next/
 /out/
 
+# PWA — workbox generated files (if using a build-time plugin in future)
+/public/workbox-*.js
+/public/workbox-*.js.map
+/public/fallback-*.js
+/public/fallback-*.js.map
+# public/sw.js is a hand-authored static file — do NOT ignore it
+
 # production
 /build
 

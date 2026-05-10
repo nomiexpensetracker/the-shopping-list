@@ -65,3 +65,14 @@ body {
   background: var(--background);
   font-family: var(--font-sans);
 }
+
+/* PWA standalone mode — respect iPhone home indicator and notch */
+body {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}

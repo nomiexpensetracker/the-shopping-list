@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Plus_Jakarta_Sans } from "next/font/google";
 import AnalyticsScripts from "@/components/AnalyticsScripts";
 import CookieBanner from "@/components/CookieBanner";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
 import "./globals.css";
 
@@ -16,8 +17,18 @@ export const metadata: Metadata = {
   title: "The Shopping List — Collaborative Group Shopping",
   description:
     "Create or join a group shopping session in seconds. Collaborate on a shared list, track your budget, and finish with a digital receipt.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Shopping List",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: "The Shopping List — Collaborative Group Shopping",
@@ -38,6 +49,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#1a6641",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -49,6 +67,7 @@ export default function RootLayout({
       className={`${jakartaSans.variable} h-full antialiased`}
     >
       <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="min-h-full flex flex-col">
         {children}
@@ -56,6 +75,7 @@ export default function RootLayout({
         <SpeedInsights />
         <AnalyticsScripts />
         <CookieBanner />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );
