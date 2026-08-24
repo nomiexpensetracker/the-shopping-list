@@ -1,37 +1,63 @@
 "use client";
 
-import useSWR from "swr";
 import Link from "next/link";
-import { use } from "react";
+import { use, useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import { domToPng } from 'modern-screenshot';
 
 import QRCode from "@/components/QRCode";
 import ItemCard from "@/components/ItemCard";
 import { CommonResponse } from "@/types/dto";
 import type { Receipt } from "@/types/dao";
 import { useCurrency } from "@/components/CurrencyProvider";
-import { useReceiptExport } from "@/lib/hooks";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function ReceiptPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
   const searchParams = useSearchParams();
   const qrValue = searchParams.get("qr");
-
+  
   const { formatAmount } = useCurrency();
+  const receiptRef = useRef<HTMLDivElement>(null);
+  
+  const [isExporting, setIsExporting] = useState(false);
+  const [receipt, setReceipt] = useState<CommonResponse<Receipt> | null>(null);
 
-  const { data: receipt } = useSWR<CommonResponse<Receipt>>(`/api/sessions/${token}/receipt`, fetcher, {
-    revalidateOnFocus: false,
-  });
+  useEffect(() => {
+    const cached = localStorage.getItem(`receipt_${token}`);
+    if (cached) {
+      try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setReceipt(JSON.parse(cached));
+      } catch {
+        console.error("Failed to parse receipt from local storage");
+      }
+    }
+  }, [token]);
 
   const collectedItems = receipt?.data?.items || [];
   const sessionName = receipt?.data?.session_name || "The Shopping List";
-  const filename = `digital-receipt-${sessionName.toLowerCase().replaceAll(" ", "-")}-${token.slice(0, 16)}.pdf`;
-  const { receiptRef, exportToPDF, isExporting } = useReceiptExport(filename);
+  const filename = `digital-receipt-${sessionName.toLowerCase().replaceAll(" ", "-")}-${token.slice(0, 16)}.png`;
 
-  // Total Items Listed: The requested behaviour is to only show the snapshot of the list with collected items.
   const totalItemsCount = collectedItems.length;
+
+  const handleTakeSnapshot = async () => {
+    if (!receiptRef.current) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = await domToPng(receiptRef.current, {
+        scale: 2,
+        backgroundColor: "var(--background)",
+      });
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Failed to take snapshot', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <main
@@ -40,7 +66,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
         background: "var(--background)",
       }}
     >
-      <div ref={receiptRef} className="flex flex-col gap-6">
+      <div ref={receiptRef} className="flex flex-col gap-6 p-4 -m-4" style={{ background: "var(--background)" }}>
         <div className="text-center mb-2">
           <h1
             className="text-2xl font-black tracking-widest uppercase"
@@ -92,51 +118,51 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
             items={collectedItems}
             participants={receipt?.data?.participants || []}
             showHeader={false}
-          // Intentionally leaving out onEditCollected so edit icon is not shown
           />
         ) : (
           <div className="flex-1 flex items-center justify-center py-16">
             <p className="text-sm" style={{ color: "var(--muted)" }}>No items collected.</p>
           </div>
         )}
+
+        {/* QR CODE Section inside snapshot */}
+        {qrValue && (
+          <div className="mt-2 flex flex-col gap-2 p-6 rounded-3xl items-center" style={{ background: "var(--card)" }}>
+            <p className="text-sm text-center font-bold uppercase tracking-widest mb-1" style={{ color: "var(--foreground)" }}>
+              Scan for Next Trip!
+            </p>
+            <p className="text-xs text-center mb-2" style={{ color: "var(--muted)" }}>
+              Scan this QR code on your next trip to instantly pre-load all items from this session into a new list.
+            </p>
+
+            <div
+              className="p-4 rounded-2xl w-fit mx-auto"
+              style={{ background: "var(--brand-light)" }}
+            >
+              <QRCode value={qrValue} size={180} />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* QR CODE Section */}
-      {qrValue && (
-        <div className="mt-8 flex flex-col gap-2 p-6 rounded-3xl items-center" style={{ background: "var(--card)" }}>
-          <p className="text-sm text-center font-bold uppercase tracking-widest mb-1" style={{ color: "var(--foreground)" }}>
-            Scan for Next Trip!
-          </p>
-          <p className="text-xs text-center mb-2" style={{ color: "var(--muted)" }}>
-            Scan this QR code on your next trip to instantly pre-load all items from this session into a new list.
-          </p>
-
-          <div
-            className="p-4 rounded-2xl w-fit mx-auto mb-4"
-            style={{ background: "var(--brand-light)" }}
-          >
-            <QRCode value={qrValue} size={180} />
-          </div>
-
-          <div className="flex flex-col w-full gap-2 mt-4">
-            <button
-              onClick={exportToPDF}
-              disabled={isExporting}
-              className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center transition disabled:opacity-60"
-              style={{ background: "var(--brand)" }}
-            >
-              {isExporting ? "Downloading…" : "Download Receipt"}
-            </button>
-            <Link
-              href="/app"
-              className="w-full py-4 rounded-xl font-semibold text-base flex items-center justify-center transition active:opacity-70"
-              style={{ background: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)" }}
-            >
-              Back to Home
-            </Link>
-          </div>
-        </div>
-      )}
+      {/* ACTION BUTTONS (Outside snapshot) */}
+      <div className="flex flex-col w-full gap-2 mt-4">
+        <button
+          onClick={handleTakeSnapshot}
+          disabled={isExporting}
+          className="w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center transition disabled:opacity-60"
+          style={{ background: "var(--brand)" }}
+        >
+          {isExporting ? "Taking Snapshot…" : "Take a Snapshot"}
+        </button>
+        <Link
+          href="/app"
+          className="w-full py-4 rounded-xl font-semibold text-base flex items-center justify-center transition active:opacity-70"
+          style={{ background: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)" }}
+        >
+          Back to Home
+        </Link>
+      </div>
     </main>
   );
 }

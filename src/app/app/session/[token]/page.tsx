@@ -216,6 +216,10 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   const handleEndSession = async () => {
     setEndingSession(true);
     try {
+      const receiptRes = await fetch(`/api/sessions/${token}/receipt`);
+      const receiptData = await receiptRes.json();
+      localStorage.setItem(`receipt_${token}`, JSON.stringify(receiptData));
+
       const res = await fetch(`/api/sessions/${token}`, { method: "DELETE" });
       const data = await res.json() as CommonResponse<{ templateId?: string; listId?: string }>;
       
@@ -229,7 +233,7 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
         : `${baseUrl}/app/template/${data.data?.templateId}`;
 
       router.push(`/app/session/${token}/receipt?qr=${encodeURIComponent(qrValue)}`);
-    } catch (e) {
+    } catch {
       setEndingSession(false);
     }
   };
