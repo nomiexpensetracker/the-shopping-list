@@ -15,10 +15,10 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
   const { token } = use(params);
   const searchParams = useSearchParams();
   const qrValue = searchParams.get("qr");
-  
+
   const { formatAmount } = useCurrency();
   const receiptRef = useRef<HTMLDivElement>(null);
-  
+
   const [isExporting, setIsExporting] = useState(false);
   const [receipt, setReceipt] = useState<CommonResponse<Receipt> | null>(null);
 
@@ -37,8 +37,6 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
   const collectedItems = receipt?.data?.items || [];
   const sessionName = receipt?.data?.session_name || "The Shopping List";
   const filename = `digital-receipt-${sessionName.toLowerCase().replaceAll(" ", "-")}-${token.slice(0, 16)}.png`;
-
-  const totalItemsCount = collectedItems.length;
 
   const handleTakeSnapshot = async () => {
     if (!receiptRef.current) return;
@@ -81,20 +79,9 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
 
         {/* Stats bar */}
         {collectedItems.length > 0 && (
-          <div className="w-full grid grid-cols-[30%_67%] justify-between">
+          <div className="w-full">
             <div
-              className="flex-1 rounded-2xl p-4 flex flex-col items-start justify-center"
-              style={{ background: "var(--card)" }}
-            >
-              <p className="text-sm uppercase font-bold tracking-widest" style={{ color: "var(--muted)" }}>
-                Total Items Listed
-              </p>
-              <p className="text-4xl uppercase font-extrabold tracking-widest" style={{ color: "var(--collected-text)" }}>
-                {totalItemsCount}
-              </p>
-            </div>
-            <div
-              className="flex-1 rounded-2xl p-4 flex flex-col gap-2 items-start justify-center"
+              className="w-full rounded-2xl p-4 flex flex-col gap-2 items-start justify-center"
               style={{ background: "var(--collected-bg)" }}
             >
               <p className="text-sm uppercase font-bold tracking-widest" style={{ color: "var(--muted)" }}>
@@ -129,10 +116,10 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
         {qrValue && (
           <div className="mt-2 flex flex-col gap-2 p-6 rounded-3xl items-center" style={{ background: "var(--card)" }}>
             <p className="text-sm text-center font-bold uppercase tracking-widest mb-1" style={{ color: "var(--foreground)" }}>
-              Scan for Next Trip!
+              Scan for Next Shopping Session!
             </p>
             <p className="text-xs text-center mb-2" style={{ color: "var(--muted)" }}>
-              Scan this QR code on your next trip to instantly pre-load all items from this session into a new list.
+              Scan this QR code on your next shopping session to instantly pre-load all items from this session into a new list.
             </p>
 
             <div

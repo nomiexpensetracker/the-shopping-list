@@ -130,11 +130,6 @@ const ItemCard = ({
                       {item.description}
                     </p>
                   )}
-                  {item.state === 'collected' && item.price != null && item.price > 0 && (
-                    <p className="text-sm font-medium" style={{ color: "var(--brand)" }}>
-                      {formatAmount(item.price)}
-                    </p>
-                  )}
                 </div>
 
                 {/* Actions */}
@@ -187,6 +182,11 @@ const ItemCard = ({
 
                 {item.state === 'collected' && (
                   <div className="flex items-center gap-2">
+                    {item.price != null && item.price > 0 && (
+                      <span className="text-sm font-medium whitespace-nowrap" style={{ color: "var(--brand)" }}>
+                        {formatAmount(item.price)}
+                      </span>
+                    )}
                     {onEditCollected ? (
                       <div className="w-fit h-10 py-1 px-2 rounded-lg flex items-center justify-between gap-2" style={{ background: "var(--background)" }}>
                         <span
