@@ -84,13 +84,13 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
         {collectedItems.length > 0 && (
           <div className="w-full">
             <div
-              className="w-full rounded-2xl p-4 flex flex-col gap-2 items-start justify-center"
+              className="w-full rounded-2xl p-4"
               style={{ background: "var(--collected-bg)" }}
             >
-              <p className="text-sm uppercase font-bold tracking-widest" style={{ color: "var(--muted)" }}>
+              <p className="text-sm uppercase font-bold tracking-widest mb-2" style={{ color: "var(--muted)" }}>
                 Colected - <span style={{ color: "var(--collected-text)" }}>{collectedItems.length}</span>
               </p>
-              <div className="flex flex-col items-start justify-center">
+              <div>
                 <p className="text-sm uppercase font-bold tracking-widest" style={{ color: "var(--muted)" }}>
                   Total Price
                 </p>
@@ -117,16 +117,16 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
 
         {/* QR CODE Section inside snapshot */}
         {qrValue && (
-          <div className="mt-2 flex flex-col gap-2 p-6 rounded-3xl items-center" style={{ background: "var(--card)" }}>
-            <p className="text-sm text-center font-bold uppercase tracking-widest mb-1" style={{ color: "var(--foreground)" }}>
+          <div className="mt-2 p-6 rounded-3xl text-center" style={{ background: "var(--card)" }}>
+            <p className="text-sm font-bold uppercase tracking-widest mb-2" style={{ color: "var(--foreground)" }}>
               Scan for Next Shopping Session!
             </p>
-            <p className="text-xs text-center mb-2" style={{ color: "var(--muted)" }}>
+            <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
               Scan this QR code on your next shopping session to instantly pre-load all items from this session into a new list.
             </p>
 
             <div
-              className="p-4 rounded-2xl w-fit mx-auto"
+              className="p-4 rounded-2xl inline-block"
               style={{ background: "var(--brand-light)" }}
             >
               <QRCode value={qrValue} size={180} />
