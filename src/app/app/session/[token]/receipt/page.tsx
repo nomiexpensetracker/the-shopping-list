@@ -34,7 +34,10 @@ export default function ReceiptPage({ params }: { params: Promise<{ token: strin
     }
   }, [token]);
 
-  const collectedItems = receipt?.data?.items || [];
+  const collectedItems = (receipt?.data?.items || []).map(item => ({
+    ...item,
+    state: "collected" as const
+  }));
   const sessionName = receipt?.data?.session_name || "The Shopping List";
   const filename = `digital-receipt-${sessionName.toLowerCase().replaceAll(" ", "-")}-${token.slice(0, 16)}.png`;
 
