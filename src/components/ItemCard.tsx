@@ -187,9 +187,8 @@ const ItemCard = ({
 
                 {item.state === 'collected' && (
                   <div className="flex items-center gap-2">
-                    {onEditCollected && (
+                    {onEditCollected ? (
                       <div className="w-fit h-10 py-1 px-2 rounded-lg flex items-center justify-between gap-2" style={{ background: "var(--background)" }}>
-
                         <span
                           className="text-base font-bold w-6 text-center shrink-0"
                           style={{ color: "var(--foreground)" }}
@@ -207,8 +206,14 @@ const ItemCard = ({
                           </button>
                         </div>
                       </div>
+                    ) : (
+                      <span
+                        className="text-sm font-semibold w-8 text-center shrink-0"
+                        style={{ color: "var(--muted)" }}
+                      >
+                        {item.quantity}
+                      </span>
                     )}
-
                   </div>
                 )}
               </div>

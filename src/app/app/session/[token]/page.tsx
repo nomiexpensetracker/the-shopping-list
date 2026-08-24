@@ -216,12 +216,21 @@ export default function SessionPage({ params }: { params: Promise<{ token: strin
   const handleEndSession = async () => {
     setEndingSession(true);
     try {
-      await fetch(`/api/sessions/${token}`, { method: "DELETE" });
-    } finally {
+      const res = await fetch(`/api/sessions/${token}`, { method: "DELETE" });
+      const data = await res.json() as CommonResponse<{ templateId?: string; listId?: string }>;
+      
       Object.keys(localStorage)
-        .filter((k) => k.startsWith("participant_"))
+        .filter((k) => k.startsWith(`participant_${token}`))
         .forEach((k) => localStorage.removeItem(k));
-      router.push("/app");
+        
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://the-shopping-list-eight.vercel.app';
+      const qrValue = data.data?.listId 
+        ? `${baseUrl}/app/list/${data.data.listId}`
+        : `${baseUrl}/app/template/${data.data?.templateId}`;
+
+      router.push(`/app/session/${token}/receipt?qr=${encodeURIComponent(qrValue)}`);
+    } catch (e) {
+      setEndingSession(false);
     }
   };
 
